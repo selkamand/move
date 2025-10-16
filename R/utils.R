@@ -116,3 +116,71 @@ vector_alignment <- function(v, t, tol = 1e-8) {
   if (abs(cos_theta + 1) < tol) return("antiparallel")
   "neither"
 }
+
+
+
+#' Convert radians to degrees
+#'
+#' Converts an angle expressed in radians to its equivalent value in degrees.
+#'
+#' @param radians Numeric scalar or vector of angles in radians.
+#'
+#' @return Numeric value(s) in degrees.
+#'
+#' @examples
+#' radians_to_degrees(pi)      # 180
+#' radians_to_degrees(pi / 2)  # 90
+#'
+#' @seealso [degrees_to_radians()]
+#' @export
+radians_to_degrees <- function(radians) {
+  radians * 180 / pi
+}
+
+#' Convert degrees to radians
+#'
+#' Converts an angle expressed in degrees to its equivalent value in radians.
+#'
+#' @param degrees Numeric scalar or vector of angles in degrees.
+#'
+#' @return Numeric value(s) in radians.
+#'
+#' @examples
+#' degrees_to_radians(180)  # pi
+#' degrees_to_radians(90)   # pi/2
+#'
+#' @seealso [radians_to_degrees()]
+#' @export
+degrees_to_radians <- function(degrees) {
+  degrees * pi / 180
+}
+
+
+#' Wrap angles to [0, 360) degrees
+#'
+#' Wraps input angles so that the result lies within the range [0, 360).
+#'
+#' @param degrees Numeric vector of angles in degrees.
+#' @return Numeric vector of angles wrapped to [0, 360).
+#' @examples
+#' wrap_to_360(c(-30, 0, 370))
+#' # Returns c(330, 0, 10)
+#' @export
+wrap_to_360 <- function(degrees){
+  degrees %% 360
+}
+
+#' Wrap angles to [0, 2*pi) radians
+#'
+#' Wraps input angles so that the result lies within the range [0, 2*pi).
+#'
+#' @param radians Numeric vector of angles in radians.
+#' @return Numeric vector of angles wrapped to [0, 2*pi).
+#' @examples
+#' wrap_to_2pi(c(-pi/2, 0, 5*pi))
+#' # Returns approximately c(4.712389, 0, 3.141593)
+#' @export
+wrap_to_2pi <- function(radians){
+  radians %% (pi*2)
+}
+
