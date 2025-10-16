@@ -470,3 +470,33 @@ convert_plane_normal_offset_to_point <- function(normal, offset) {
   point_on_plane <- as.numeric(offset) * n_hat
   list(point = point_on_plane, normal = n_hat)
 }
+
+
+# Measure ---------------------------------------------------------------
+
+#' Measure the angle between two vectors
+#'
+#' Computes the angle between two numeric vectors using the dot product formula:
+#' \deqn{\theta = \arccos\left( \frac{a \cdot b}{\|a\|\|b\|} \right)}
+#' The angle can be returned in either radians (default) or degrees.
+#'
+#' @param a,b Numeric vectors of equal length.
+#' @param degrees Logical; if \code{TRUE}, return the angle in degrees
+#'   instead of radians.
+#'
+#' @return Numeric scalar giving the angle between \code{a} and \code{b}.
+#'   Returns \code{NA} if either vector has zero magnitude.
+#'
+#' @examples
+#' measure_angle_between_vectors(c(1, 0, 0), c(0, 1, 0))        # pi/2 radians
+#' measure_angle_between_vectors(c(1, 0, 0), c(0, 1, 0), degrees = TRUE)  # 90 degrees
+#' measure_angle_between_vectors(c(1, 0, 0), c(1, 0, 0))        # 0
+#'
+#' @seealso [radians_to_degrees()], [degrees_to_radians()]
+#' @export
+measure_angle_between_vectors <- function(a, b, degrees = FALSE){
+  costheta <- (a %*% b) / (magnitude(a) * magnitude(b))
+  theta <- as.numeric(acos(costheta))
+  if (degrees) { theta <- radians_to_degrees(theta) }
+  return(theta)
+}
