@@ -42,12 +42,13 @@ remotes::install_github("selkamand/trans")
 
 ```{r}
 library(trans)
+library(rgl)
 
-v    <- c(1, 0, 0)
+v <- c(1, 0, 0)
 axis <- c(0, 0, 1)
-ang  <- pi/2  # 90 degrees in radians
+angle <- pi/2  # 90 degrees in radians
 
-rotate_vector_around_axis(v, axis, ang)
+rotate_vector_around_axis(v, axis, angle)
 ```
 
 ### Rotate a vector to align with a target direction
@@ -92,6 +93,25 @@ translate_position_in_direction(c(0, 0, 0), c(1, 1, 0), 10)
 
 compute_translation_vector(c(1, 2, 3), c(4, 6, 3))
 #> c(3, 4, 0)
+```
+
+
+### Measuring
+
+```{r}
+a <- c(1, 0, 0)
+b <- c(0,1,0)
+
+measure_angle_between_vectors(a, b)
+
+a %angle% b
+```
+
+### Conversion
+
+```{r}
+radians_to_degrees(pi)
+degrees_to_radians(180)
 ```
 
 

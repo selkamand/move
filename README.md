@@ -34,12 +34,14 @@ remotes::install_github("selkamand/trans")
 
 ``` r
 library(trans)
+library(rgl)
+#> Warning: package 'rgl' was built under R version 4.4.1
 
-v    <- c(1, 0, 0)
+v <- c(1, 0, 0)
 axis <- c(0, 0, 1)
-ang  <- pi/2  # 90 degrees in radians
+angle <- pi/2  # 90 degrees in radians
 
-rotate_vector_around_axis(v, axis, ang)
+rotate_vector_around_axis(v, axis, angle)
 #> [1] 0 1 0
 ```
 
@@ -92,6 +94,28 @@ translate_position_in_direction(c(0, 0, 0), c(1, 1, 0), 10)
 compute_translation_vector(c(1, 2, 3), c(4, 6, 3))
 #> [1] 3 4 0
 #> c(3, 4, 0)
+```
+
+### Measuring
+
+``` r
+a <- c(1, 0, 0)
+b <- c(0,1,0)
+
+measure_angle_between_vectors(a, b)
+#> [1] 1.570796
+
+a %angle% b
+#> [1] 1.570796
+```
+
+### Conversion
+
+``` r
+radians_to_degrees(pi)
+#> [1] 180
+degrees_to_radians(180)
+#> [1] 3.141593
 ```
 
 ### Plane representation conversions
