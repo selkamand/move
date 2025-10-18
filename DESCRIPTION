@@ -17,3 +17,4 @@ BugReports: https://github.com/selkamand/trans/issues
 Imports: 
     pracma,
     rlang
+Config/Needs/website: rmarkdown

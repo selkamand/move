@@ -1,0 +1,44 @@
+---
+title: "Manual"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(trans)
+library(rgl)
+
+rgl::setupKnitr()
+zero <- c(0, 0, 0)
+```
+
+## Intro
+
+Here we will show visually what each transformation does using the rgl package. In all visualisations, blue represents the original vector/position and Red represents the new vector/position.
+
+
+## Basic Transformations
+```{r}
+v <- c(1, 0, 0)
+axis <- c(0, 0, 1)
+angle <- pi/2  # 90 degrees in radians
+
+v_new <- rotate_vector_around_axis(v, axis, angle)
+
+# Draw original vec
+clear3d()
+decorate3d()
+arrow3d(p0 = zero, p1 = v, color="blue", type = "rotation")
+arrow3d(p0 = zero, p1 = v_new, color="red", type = "rotation")
+arrow3d(p0 = zero, p1 = axis, color="purple", type = "rotation")
+arc3d(from = v/3, to = v_new/3, center = zero, color="green", lwd = 5)
+text3d(x = (v + v_new)/6, texts = radians_to_degrees(angle))
+# vectors3d
+rglwidget()
+```
+
