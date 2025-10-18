@@ -37,6 +37,3 @@ df <- data.frame(x = 0, y = 0, z = 0, xend = 1, yend = 1, zend = 1, id = 1)
 convert_tidy_segments_to_interleaved(df)
 
 }
-\seealso{
-\code{\link[=geom_segment]{geom_segment()}} for ggplot2-style segment data.
-}
