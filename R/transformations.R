@@ -472,6 +472,65 @@ convert_plane_normal_offset_to_point <- function(normal, offset) {
 }
 
 
+# Locate ------------------------------------------------------------------
+#' Locate the geometric center (centroid) of 3D points
+#'
+#' Computes the arithmetic mean position of a set of 3D coordinates,
+#' returning the centroid (center point). This is equivalent to taking
+#' the average of all x, y, and z values separately.
+#'
+#' @param ... Either:
+#'   \itemize{
+#'     \item Three numeric vectors \code{x}, \code{y}, \code{z}, all of equal length, or
+#'     \item A single numeric matrix or data frame with columns named \code{x}, \code{y}, and \code{z}.
+#'   }
+#'
+#' @return Numeric vector of length 3 giving the centroid coordinates
+#'   \code{c(x_center, y_center, z_center)}.
+#'
+#' @examples
+#' pts <- data.frame(
+#'   x = c(0, 2, 4),
+#'   y = c(1, 3, 5),
+#'   z = c(2, 4, 6)
+#' )
+#' locate_center(pts)
+#' # Returns c(2, 3, 4)
+#'
+#' locate_center(c(0, 2, 4), c(1, 3, 5), c(2, 4, 6))
+#' # Same result
+#' @export
+locate_center <- function(...) {
+  args <- list(...)
+
+  # Case 1: single data frame or matrix
+  if (length(args) == 1 && is.data.frame(args[[1]])) {
+    df <- args[[1]]
+    if (!all(c("x", "y", "z") %in% names(df))) {
+      stop("Data frame must have columns named 'x', 'y', and 'z'.")
+    }
+    x <- df$x; y <- df$y; z <- df$z
+  } else if (length(args) == 1 && is.matrix(args[[1]])) {
+    mat <- args[[1]]
+    if (ncol(mat) < 3) stop("Matrix must have at least 3 columns for x, y, z.")
+    x <- mat[, 1]; y <- mat[, 2]; z <- mat[, 3]
+  } else if (length(args) == 3) {
+    x <- args[[1]]; y <- args[[2]]; z <- args[[3]]
+    if (!(is.numeric(x) && is.numeric(y) && is.numeric(z)))
+      stop("x, y, z must all be numeric vectors.")
+    if (!(length(x) == length(y) && length(y) == length(z)))
+      stop("x, y, z must have the same length.")
+  } else {
+    stop("Provide either a data frame/matrix with x, y, z columns, or three numeric vectors.")
+  }
+
+  center <- c(mean(x), mean(y), mean(z))
+  names(center) <- c("x", "y", "z")
+  return(center)
+}
+
+
+
 # Measure ---------------------------------------------------------------
 
 #' Measure the angle between two vectors
@@ -500,3 +559,110 @@ measure_angle_between_vectors <- function(a, b, degrees = FALSE){
   if (degrees) { theta <- radians_to_degrees(theta) }
   return(theta)
 }
+
+
+
+# Apply transformations to tables -----------------------------------------
+
+# Table is either a data.frame or matrix with column names (x,y, z)
+# Function expect at least one input: a vector of length 3 3 dimensions: (x, y, z) and return a 3 column data.frame with cols (x, y, z)
+# in that order
+
+#' Apply a 3D transformation function to coordinate tables
+#'
+#' Applies a user-supplied transformation function to each row of a table
+#' containing 3D coordinates (`x`, `y`, `z`), returning an updated table
+#' with transformed coordinates.
+#'
+#' @param table A data frame or matrix containing at least the columns
+#'   `x`, `y`, and `z`.
+#' @param f A function that takes a numeric vector or named list of length 3
+#'   (`x`, `y`, `z`) and returns a structure (e.g., named numeric or list)
+#'   with elements `x`, `y`, and `z` in that order.
+#'
+#' @return A data frame with the same columns as `table`, but with the
+#'   `x`, `y`, and `z` coordinates replaced by the transformed values.
+#'
+#' @examples
+#' # Example: rotate points around Z-axis
+#' rotate_z <- function(p) {
+#'   angle <- pi / 4
+#'   c(x = p["x"] * cos(angle) - p["y"] * sin(angle),
+#'     y = p["x"] * sin(angle) + p["y"] * cos(angle),
+#'     z = p["z"])
+#' }
+#'
+#' pts <- data.frame(x = c(1, 0), y = c(0, 1), z = 0)
+#' apply_tranformation_to_table(pts, rotate_z)
+#'
+#' @export
+apply_tranformation_to_table <- function(table, f){
+  coords <- table[c("x", "y", "z")]
+  res = apply(X = coords, MARGIN = 1, FUN = f, simplify = FALSE)
+
+  table$x <- vapply(res, FUN = \(d){d[1]}, FUN.VALUE = numeric(1))
+  table$y <- vapply(res, FUN = \(d){d[2]}, FUN.VALUE = numeric(1))
+  table$z <- vapply(res, FUN = \(d){d[3]}, FUN.VALUE = numeric(1))
+  return(table)
+}
+
+
+# ChemSpecific ------------------------------------------------------------
+
+#' Bond vector CD from length, angle (∠BCD) and torsion (ABCD)
+#'
+#' Builds a right-handed local frame at C and returns the vector C->D
+#' consistent with the given internal coordinates and dihedral sign.
+#'
+#' @param A,B,C Numeric length-3 vectors: Cartesian coords of atoms A, B, C.
+#' @param bond_length Numeric scalar: |CD|.
+#' @param bond_angle Numeric scalar: ∠BCD (degrees by default).
+#' @param torsion_angle Numeric scalar: dihedral ∠ABCD (degrees by default).
+#' @param degrees Logical; if TRUE (default), angles are in degrees.
+#' @return Named numeric vector c(x,y,z) giving C->D.
+#' @export
+bond_vector_from_internal <- function(A, B, C,
+                                      bond_length,
+                                      bond_angle,
+                                      torsion_angle,
+                                      degrees = TRUE) {
+  stopifnot(length(A) == 3, length(B) == 3, length(C) == 3)
+
+  norm <- function(v) sqrt(sum(v * v))
+  normalize <- function(v) {
+    n <- norm(v); if (n == 0) stop("Zero-length vector."); v / n
+  }
+  cross <- function(u, v) c(u[2]*v[3] - u[3]*v[2],
+                            u[3]*v[1] - u[1]*v[3],
+                            u[1]*v[2] - u[2]*v[1])
+
+  # Orthonormal triad at C:
+  e1 <- normalize(B - C)  # C -> B
+
+  # e2: (B -> A) projected perpendicular to e1
+  vBA <- B - A
+  vBA_perp <- vBA - sum(vBA * e1) * e1
+  if (sqrt(sum(vBA_perp^2)) < 1e-12) {
+    # fallback if A,B,C nearly collinear
+    tmp <- if (abs(e1[1]) < 0.9) c(1, 0, 0) else c(0, 1, 0)
+    vBA_perp <- tmp - sum(tmp * e1) * e1
+  }
+  e2 <- normalize(vBA_perp)
+
+  # e3 completes right-handed frame with correct dihedral sign
+  e3 <- normalize(cross(e2, e1))  # NOTE: e2 × e1 (not e1 × e2)
+
+  # angles
+  th <- if (degrees) bond_angle * pi/180 else bond_angle
+  ph <- if (degrees) torsion_angle * pi/180 else torsion_angle
+  L  <- bond_length
+
+  CD <- L * ( cos(th)*e1 + sin(th)*cos(ph)*e2 + sin(th)*sin(ph)*e3 )
+  stats::setNames(CD, c("x", "y", "z"))
+}
+
+# Convenience: absolute coordinates of D
+place_atom_D <- function(A, B, C, bond_length, bond_angle, torsion_angle, degrees = TRUE) {
+  C + bond_vector_from_internal(A, B, C, bond_length, bond_angle, torsion_angle, degrees)
+}
+
