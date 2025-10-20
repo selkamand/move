@@ -1,31 +1,31 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# trans
+# move
 
 <!-- badges: start -->
 
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![CRAN
-status](https://www.r-pkg.org/badges/version/trans)](https://CRAN.R-project.org/package=trans)
+status](https://www.r-pkg.org/badges/version/move)](https://CRAN.R-project.org/package=move)
 <!-- badges: end -->
 
 > \[!WARNING\]  
 > This package is in early development and not yet ready for use
 
-The trans R package provides functions for basic 3d & multidimensional
+The move R package provides functions for basic 3d & multidimensional
 transformation of points, vectors, and planes.
 
 ## Installation
 
-You can install the development version of trans like so:
+You can install the development version of move like so:
 
 ``` r
 if (!require("remotes"))
     install.packages("remotes")
 
-remotes::install_github("selkamand/trans")
+remotes::install_github("selkamand/move")
 ```
 
 ## Quick Start
@@ -33,9 +33,7 @@ remotes::install_github("selkamand/trans")
 ### Rotate a vector around an axis (Rodrigues)
 
 ``` r
-library(trans)
-library(rgl)
-#> Warning: package 'rgl' was built under R version 4.4.1
+library(move)
 
 v <- c(1, 0, 0)
 axis <- c(0, 0, 1)
@@ -126,17 +124,21 @@ Planes can be represented in two equivalent forms:
     Defined by a 3D point `point` that lies on the plane and a normal
     vector `normal`.  
     Equation:  
-    $$
+    $$$
+    \[
     \hat{n} \cdot (x - p) = 0
-    $$
+    \]
+    $$\$
 
 2.  **Normal–offset (Hesse) form**  
     Defined by a **unit** normal vector `normal` and a **signed offset**
     (distance) `offset` from the origin along that normal.  
     Equation:  
-    $$
+    $$$
+    \[
     \hat{n} \cdot x = s
-    $$ where `s` = `offset`.
+    \]
+    $$\$ where `s` = `offset`.
 
 These forms can be converted with the following functions:
 
