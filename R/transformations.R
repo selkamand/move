@@ -589,6 +589,77 @@ measure_angle_between_vectors <- function(a, b, degrees = FALSE){
   return(theta)
 }
 
+#' Compute signed angle between two planes
+#'
+#' Calculates the signed angle between two planes given their normal vectors.
+#' The sign is determined by the right-hand rule about the specified reference
+#' axis, allowing differentiation between clockwise and counter-clockwise
+#' rotations. Returns an angle in degrees by default.
+#'
+#' @param n1,n2 Numeric vectors (length 3) giving the normal vectors of the planes.
+#' @param ref_axis Numeric vector (length 3); defines the positive rotation direction
+#'   according to the right-hand rule.
+#' @param degrees Logical; if \code{TRUE}, return the angle in degrees (default).
+#'
+#' @return A numeric scalar giving the signed angle between the two planes.
+#'
+#' @details
+#' The function computes an oriented angle in the range \eqn{(-180, 180]} using
+#' \code{atan2}, with the rotation direction determined by the \code{ref_axis}.
+#' This is useful in geometric or molecular contexts (e.g., dihedral angles)
+#' where distinguishing rotation sense is important.
+#'
+#' @examples
+#' n1 <- c(0, 0, 1)
+#' n2 <- c(0, 1, 0)
+#' measure_signed_angle_between_planes(n1, n2, ref_axis = c(1, 0, 0))
+#'
+#' @export
+measure_signed_angle_between_planes <- function(n1, n2, ref_axis, degrees=TRUE){
+  n1u <- n1 / sqrt(sum(n1^2))
+  n2u <- n2 / sqrt(sum(n2^2))
+  axis_u <- ref_axis / sqrt(sum(ref_axis^2))
+
+  m1 <- pracma::cross(axis_u, n1u)
+  x <- sum(n1u * n2u) #dot product
+  y <- sum(m1 * n2u) #dot product
+
+  angle <- atan2(y, x)
+  if (degrees) angle <- radians_to_degrees(angle)
+  angle
+}
+
+#' Compute angle between two planes
+#'
+#' Calculates the (unsigned) smallest angle between two planes given their
+#' normal vectors. Returns an angle in degrees by default.
+#'
+#' @param n1,n2 Numeric vectors (length 3) giving the normal vectors of the planes.
+#' @param degrees Logical; if \code{TRUE}, return the angle in degrees (default).
+#'
+#' @return A numeric scalar giving the unsigned angle between the two planes.
+#'
+#' @details
+#' The returned value is always in the range \eqn{[0, 180]} and does not encode
+#' rotation direction. For an oriented (signed) version, see
+#' \code{\link{measure_signed_angle_between_planes}}.
+#'
+#' @examples
+#' n1 <- c(0, 0, 1)
+#' n2 <- c(0, 1, 0)
+#' measure_angle_between_planes(n1, n2)
+#'
+#' @seealso [measure_signed_angle_between_planes()]
+#' @export
+measure_angle_between_planes <- function(n1, n2, degrees = TRUE) {
+  n1u <- n1 / sqrt(sum(n1 * n1))
+  n2u <- n2 / sqrt(sum(n2 * n2))
+  angle <- acos(sum(n1u * n2u))
+  if (degrees) angle <- radians_to_degrees(angle)
+  angle
+}
+
+
 #' Measure the distance between two points
 #'
 #' Computes the Euclidean distance between two points by taking the

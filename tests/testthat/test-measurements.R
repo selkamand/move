@@ -155,3 +155,85 @@ test_that("distance is non-negative", {
   expect_gte(d, 0)
 })
 
+
+test_that("unsigned angle: orthogonal, parallel, anti-parallel (degrees)", {
+  n1 <- c(0, 0, 1)
+  n2 <- c(0, 1, 0)
+  expect_equal(measure_angle_between_planes(n1, n2), 90, tolerance = 1e-12)
+
+  n3 <- c(0, 0, 5)      # parallel to n1
+  expect_equal(measure_angle_between_planes(n1, n3), 0, tolerance = 1e-12)
+
+  n4 <- c(0, 0, -2)     # anti-parallel to n1
+  expect_equal(measure_angle_between_planes(n1, n4), 180, tolerance = 1e-12)
+})
+
+test_that("unsigned angle: radians mode", {
+  n1 <- c(1, 0, 0)
+  n2 <- c(0, 1, 0)
+  expect_equal(
+    measure_angle_between_planes(n1, n2, degrees = FALSE),
+    pi / 2,
+    tolerance = 1e-12
+  )
+})
+
+test_that("signed angle uses right-hand rule about ref_axis (degrees)", {
+  n1 <- c(0, 0, 1)   # z
+  n2 <- c(0, 1, 0)   # y
+  axis <- c(1, 0, 0) # +x
+
+  # About +x, rotating z -> y is negative (since y -> z is positive)
+  ang <- measure_signed_angle_between_planes(n1, n2, ref_axis = axis)
+  expect_equal(ang, -90, tolerance = 1e-12)
+
+  # Flipping the axis flips the sign
+  ang_flip_axis <- measure_signed_angle_between_planes(n1, n2, ref_axis = -axis)
+  expect_equal(ang_flip_axis, 90, tolerance = 1e-12)
+
+  # Swapping plane order flips the sign
+  ang_swapped <- measure_signed_angle_between_planes(n2, n1, ref_axis = axis)
+  expect_equal(ang_swapped, 90, tolerance = 1e-12)
+})
+
+test_that("signed angle magnitude matches unsigned angle (for a consistent axis)", {
+  n1 <- c(1, 1, 0)
+  n2 <- c(1, -1, 0)
+  axis <- c(0, 0, 1) # perpendicular to both normals
+
+  unsigned <- measure_angle_between_planes(n1, n2) # should be 90
+  signed   <- measure_signed_angle_between_planes(n1, n2, ref_axis = axis)
+  expect_equal(abs(signed), unsigned, tolerance = 1e-12)
+})
+
+test_that("signed angle: zero when normals are identical", {
+  n1 <- c(2, -1, 0.5)
+  n2 <- n1
+  axis <- c(0, 0, 1)
+  expect_equal(measure_signed_angle_between_planes(n1, n2, ref_axis = axis), 0, tolerance = 1e-12)
+})
+
+test_that("signed angle: radians mode", {
+  n1 <- c(0, 0, 1)
+  n2 <- c(0, 1, 0)
+  axis <- c(1, 0, 0)
+  ang_rad <- measure_signed_angle_between_planes(n1, n2, ref_axis = axis, degrees = FALSE)
+  expect_equal(ang_rad, -pi / 2, tolerance = 1e-12)
+})
+
+test_that("anti-parallel normals give 180 degrees in unsigned; signed has |angle| = 180", {
+  n1 <- c(0, 0, 1)
+  n2 <- -n1
+  axis <- c(1, 0, 0)
+  expect_equal(measure_angle_between_planes(n1, n2), 180, tolerance = 1e-12)
+  s <- measure_signed_angle_between_planes(n1, n2, ref_axis = axis)
+  expect_equal(abs(s), 180, tolerance = 1e-12)
+})
+
+test_that("signed matches right-hand rule around +x for z->y", {
+  n1 <- c(0,0,1); n2 <- c(0,1,0); axis <- c(1,0,0)
+  expect_equal(measure_signed_angle_between_planes(n1, n2, axis), -90, tolerance = 1e-12)
+  expect_equal(measure_signed_angle_between_planes(n2, n1, axis),  90,  tolerance = 1e-12)
+  expect_equal(measure_signed_angle_between_planes(n1, n2, -axis), 90,  tolerance = 1e-12)
+})
+
