@@ -105,9 +105,9 @@ compute_abcd_dihedral_stats <- function(a, b, c, d) {
   )
 }
 
-#' Compute fourth atom position or bond vector from dihedral parameters
+#' Locate fourth atom position or bond vector from dihedral parameters
 #'
-#' Calculates either the bond vector (relative to atom C) or absolute position of atom D
+#' Calculates either the absolute position of atom D or the bond vector (relative to atom C)
 #' in an A-B-C-D molecular geometry given the positions of atoms A, B, C and the
 #' desired bond angle, bond length, and torsion angle parameters.
 #'
@@ -117,21 +117,21 @@ compute_abcd_dihedral_stats <- function(a, b, c, d) {
 #' @param bond_angle Numeric scalar giving the B-C-D bond angle in degrees.
 #' @param bond_length Numeric scalar giving the C-D bond length.
 #' @param torsion_angle Numeric scalar giving the A-B-C-D torsion angle in degrees.
-#' @param return_absolute_position Logical; if \code{TRUE}, returns the absolute
-#'   coordinates of atom D. If \code{FALSE} (default), returns the bond vector
+#' @param return_bond_vector Logical; if \code{TRUE}, returns the bond vector
 #'   (relative to atom C) that when added to C gives the position of D.
+#'   If \code{FALSE} (default), returns the absolute coordinates of atom D.
 #'
 #' @return A numeric vector of length 3 giving either:
 #' \describe{
-#'   \item{If \code{return_absolute_position = FALSE} (default)}{The bond vector from C to D}
-#'   \item{If \code{return_absolute_position = TRUE}}{The absolute coordinates of atom D}
+#'   \item{If \code{return_bond_vector = FALSE} (default)}{The absolute coordinates of atom D}
+#'   \item{If \code{return_bond_vector = TRUE}}{The bond vector from C to D}
 #' }
 #'
 #' @details
 #' This function uses the \code{compas::calCo} function to compute the position
 #' of atom D based on the three preceding atoms (A, B, C) and the specified
-#' geometric parameters. By default, it returns the bond vector (D - C) which
-#' is often more useful for molecular modeling applications.
+#' geometric parameters. By default, it returns the absolute position of atom D,
+#' which is the most common use case.
 #'
 #' @examples
 #' # Define first three atoms
@@ -139,13 +139,13 @@ compute_abcd_dihedral_stats <- function(a, b, c, d) {
 #' b <- c(1, 0, 0)
 #' c <- c(1, 1, 0)
 #'
-#' # Compute bond vector (default behavior)
-#' bond_vector <- compute_fourth_atom_position(a, b, c, bond_angle = 109.5, bond_length = 1.5, torsion_angle = 60)
-#' print(bond_vector)
-#'
-#' # Get absolute position of fourth atom
-#' d_position <- compute_fourth_atom_position(a, b, c, bond_angle = 109.5, bond_length = 1.5, torsion_angle = 60, return_absolute_position = TRUE)
+#' # Locate absolute position of fourth atom (default behavior)
+#' d_position <- locate_fourth_atom_position(a, b, c, bond_angle = 109.5, bond_length = 1.5, torsion_angle = 60)
 #' print(d_position)
+#'
+#' # Get bond vector instead
+#' bond_vector <- locate_fourth_atom_position(a, b, c, bond_angle = 109.5, bond_length = 1.5, torsion_angle = 60, return_bond_vector = TRUE)
+#' print(bond_vector)
 #'
 #' # Verify: bond_vector + c should equal d_position
 #' print(c + bond_vector)
@@ -154,16 +154,17 @@ compute_abcd_dihedral_stats <- function(a, b, c, d) {
 #'   parameters from atomic positions.
 #'
 #' @export
-compute_fourth_atom_position <- function(a, b, c, bond_angle, bond_length, torsion_angle, return_absolute_position = FALSE) {
-  rlang::check_installed("compas", reason = "to compute bond angles in `compute_fourth_atom_position()`")
+locate_fourth_atom_position <- function(a, b, c, bond_angle, bond_length, torsion_angle, return_bond_vector = FALSE) {
+  rlang::check_installed("compas", reason = "to compute bond angles in `locate_fourth_atom_position()`")
 
   prev_atoms <- matrix(data = c(a, b, c), byrow = TRUE, ncol = 3)
   d_position <- compas::calCo(prev_atoms = prev_atoms, length = bond_length, bAngle = bond_angle, tAngle = torsion_angle)
 
-  if (return_absolute_position) {
-    return(d_position)
-  } else {
+  if (return_bond_vector) {
     # Return bond vector (D - C)
     return(d_position - c)
+  } else {
+    # Return absolute position (default)
+    return(d_position)
   }
 }
