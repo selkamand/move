@@ -37,7 +37,7 @@ library(move)
 
 v <- c(1, 0, 0)
 axis <- c(0, 0, 1)
-angle <- pi/2  # 90 degrees in radians
+angle <- pi / 2 # 90 degrees in radians
 
 rotate_vector_around_axis(v, axis, angle)
 #> [1] 0 1 0
@@ -46,11 +46,11 @@ rotate_vector_around_axis(v, axis, angle)
 ### Rotate a vector to align with a target direction
 
 ``` r
-v <- c(2, -3, 4)    # any vector
-target <- c(1,  1, 1)    # direction we want
+v <- c(2, -3, 4) # any vector
+target <- c(1, 1, 1) # direction we want
 
 v_rot <- rotate_vector_to_align_with_target(v, target)
-sqrt(sum(v^2))     # original length
+sqrt(sum(v^2)) # original length
 #> [1] 5.385165
 sqrt(sum(v_rot^2)) # preserved length
 #> [1] 5.385165
@@ -60,7 +60,7 @@ sqrt(sum(v_rot^2)) # preserved length
 
 ``` r
 v <- c(1, 2, 3)
-n <- c(0, 1, -1)     # plane normal
+n <- c(0, 1, -1) # plane normal
 
 v_in_plane <- rotate_vector_into_a_plane(v, n)
 # v_in_plane lies in the plane; ||v|| is preserved (unlike a projection)
@@ -98,7 +98,7 @@ compute_translation_vector(c(1, 2, 3), c(4, 6, 3))
 
 ``` r
 a <- c(1, 0, 0)
-b <- c(0,1,0)
+b <- c(0, 1, 0)
 
 measure_angle_between_vectors(a, b)
 #> [1] 1.570796
@@ -124,34 +124,33 @@ Planes can be represented in two equivalent forms:
     Defined by a 3D point `point` that lies on the plane and a normal
     vector `normal`.  
     Equation:  
-    $$$
-    \[
+    ``` math
+
     \hat{n} \cdot (x - p) = 0
-    \]
-    $$\$
+    ```
 
 2.  **Normal–offset (Hesse) form**  
     Defined by a **unit** normal vector `normal` and a **signed offset**
     (distance) `offset` from the origin along that normal.  
     Equation:  
-    $$$
-    \[
+    ``` math
+
     \hat{n} \cdot x = s
-    \]
-    $$\$ where `s` = `offset`.
+    ```
+    where `s` = `offset`.
 
 These forms can be converted with the following functions:
 
 ``` r
 # Point–normal -> Normal–offset
-x <- convert_plane_point_normal_to_normal_offset(normal = c(0,0,2), point = c(2,3,5))
-x$normal  # c(0,0,1)
+x <- convert_plane_point_normal_to_normal_offset(normal = c(0, 0, 2), point = c(2, 3, 5))
+x$normal # c(0,0,1)
 #> [1] 0 0 1
-x$offset  # 5
+x$offset # 5
 #> [1] 5
 
 # Normal–offset -> Point–normal (closest point to origin)
-convert_plane_normal_offset_to_point(normal = c(0,0,1), offset = 5)
+convert_plane_normal_offset_to_point(normal = c(0, 0, 1), offset = 5)
 #> $point
 #> [1] 0 0 5
 #> 
