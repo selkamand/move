@@ -1,6 +1,7 @@
 #' Normalize a numeric vector
 #'
 #' Scales a vector to unit length by dividing each element by its Euclidean norm.
+#' If input is a zero vector, returns vector of NaN values
 #'
 #' @param x Numeric vector.
 #' @returns A numeric vector of the same length as `x`, scaled so that its magnitude is 1.

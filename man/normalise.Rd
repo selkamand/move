@@ -14,6 +14,7 @@ A numeric vector of the same length as \code{x}, scaled so that its magnitude is
 }
 \description{
 Scales a vector to unit length by dividing each element by its Euclidean norm.
+If input is a zero vector, returns vector of NaN values
 }
 \examples{
 normalise(c(3, 4))  # returns c(0.6, 0.8)

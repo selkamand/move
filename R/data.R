@@ -19,7 +19,6 @@
 #' @examples
 #' data(benzene)
 #' head(benzene)
-#' plotrgl(benzene, bonds = data.frame(origin = 1:6, target = c(2:6, 1)))
 #'
 #' @source Generated from internal molecular coordinate data.
 #' @keywords datasets
