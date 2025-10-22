@@ -105,11 +105,11 @@ compute_abcd_dihedral_stats <- function(a, b, c, d) {
   )
 }
 
-#' Compute atomic position from dihedral parameters
+#' Compute fourth atom position or bond vector from dihedral parameters
 #'
-#' Calculates the position of atom D in an A-B-C-D molecular geometry given
-#' the positions of atoms A, B, C and the desired bond angle, bond length,
-#' and torsion angle parameters.
+#' Calculates either the bond vector (relative to atom C) or absolute position of atom D
+#' in an A-B-C-D molecular geometry given the positions of atoms A, B, C and the
+#' desired bond angle, bond length, and torsion angle parameters.
 #'
 #' @param a Numeric vector of length 3 giving the xyz coordinates of atom A.
 #' @param b Numeric vector of length 3 giving the xyz coordinates of atom B.
@@ -117,14 +117,21 @@ compute_abcd_dihedral_stats <- function(a, b, c, d) {
 #' @param bond_angle Numeric scalar giving the B-C-D bond angle in degrees.
 #' @param bond_length Numeric scalar giving the C-D bond length.
 #' @param torsion_angle Numeric scalar giving the A-B-C-D torsion angle in degrees.
+#' @param return_absolute_position Logical; if \code{TRUE}, returns the absolute
+#'   coordinates of atom D. If \code{FALSE} (default), returns the bond vector
+#'   (relative to atom C) that when added to C gives the position of D.
 #'
-#' @return A numeric vector of length 3 giving the computed xyz coordinates of atom D.
+#' @return A numeric vector of length 3 giving either:
+#' \describe{
+#'   \item{If \code{return_absolute_position = FALSE} (default)}{The bond vector from C to D}
+#'   \item{If \code{return_absolute_position = TRUE}}{The absolute coordinates of atom D}
+#' }
 #'
 #' @details
 #' This function uses the \code{compas::calCo} function to compute the position
 #' of atom D based on the three preceding atoms (A, B, C) and the specified
-#' geometric parameters. The function is useful for building molecular structures
-#' or validating dihedral angle calculations.
+#' geometric parameters. By default, it returns the bond vector (D - C) which
+#' is often more useful for molecular modeling applications.
 #'
 #' @examples
 #' # Define first three atoms
@@ -132,21 +139,31 @@ compute_abcd_dihedral_stats <- function(a, b, c, d) {
 #' b <- c(1, 0, 0)
 #' c <- c(1, 1, 0)
 #'
-#' # Compute position of fourth atom with specific geometry
-#' d <- compute_abcd_bond_angle(a, b, c, bond_angle = 109.5, bond_length = 1.5, torsion_angle = 60)
-#' print(d)
+#' # Compute bond vector (default behavior)
+#' bond_vector <- compute_fourth_atom_position(a, b, c, bond_angle = 109.5, bond_length = 1.5, torsion_angle = 60)
+#' print(bond_vector)
 #'
-#' # Verify the result using compute_abcd_dihedral_stats
-#' stats <- compute_abcd_dihedral_stats(a, b, c, d)
-#' print(stats)
+#' # Get absolute position of fourth atom
+#' d_position <- compute_fourth_atom_position(a, b, c, bond_angle = 109.5, bond_length = 1.5, torsion_angle = 60, return_absolute_position = TRUE)
+#' print(d_position)
+#'
+#' # Verify: bond_vector + c should equal d_position
+#' print(c + bond_vector)
 #'
 #' @seealso \code{\link{compute_abcd_dihedral_stats}} for computing dihedral
 #'   parameters from atomic positions.
 #'
 #' @export
-compute_abcd_bond_angle <- function(a, b, c, bond_angle, bond_length, torsion_angle) {
-  rlang::check_installed("compas", reason = "to compute bond angles in `compute_abcd_bond_angle()`")
+compute_fourth_atom_position <- function(a, b, c, bond_angle, bond_length, torsion_angle, return_absolute_position = FALSE) {
+  rlang::check_installed("compas", reason = "to compute bond angles in `compute_fourth_atom_position()`")
 
   prev_atoms <- matrix(data = c(a, b, c), byrow = TRUE, ncol = 3)
-  compas::calCo(prev_atoms = prev_atoms, length = bond_length, bAngle = bond_angle, tAngle = torsion_angle)
+  d_position <- compas::calCo(prev_atoms = prev_atoms, length = bond_length, bAngle = bond_angle, tAngle = torsion_angle)
+
+  if (return_absolute_position) {
+    return(d_position)
+  } else {
+    # Return bond vector (D - C)
+    return(d_position - c)
+  }
 }

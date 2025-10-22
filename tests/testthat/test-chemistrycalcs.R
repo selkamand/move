@@ -130,7 +130,7 @@ test_that("compute_abcd_dihedral_stats with known geometry", {
   expect_equal(result$torsion_angle, 0, tolerance = 1e-10)
 })
 
-test_that("compute_abcd_bond_angle works with valid inputs", {
+test_that("compute_fourth_atom_position works with valid inputs", {
   # Skip if compas is not available
   skip_if_not_installed("compas")
 
@@ -139,22 +139,66 @@ test_that("compute_abcd_bond_angle works with valid inputs", {
   b <- c(1, 0, 0)
   c <- c(1, 1, 0)
 
-  # Compute position of fourth atom
-  d <- compute_abcd_bond_angle(a, b, c, bond_angle = 90, bond_length = 1, torsion_angle = 0)
+  # Test default behavior (bond vector)
+  bond_vector <- compute_fourth_atom_position(a, b, c, bond_angle = 90, bond_length = 1, torsion_angle = 0)
 
   # Check output is a numeric vector of length 3
-  expect_type(d, "double")
-  expect_length(d, 3)
+  expect_type(bond_vector, "double")
+  expect_length(bond_vector, 3)
 
   # Check that all values are finite
-  expect_true(all(is.finite(d)))
+  expect_true(all(is.finite(bond_vector)))
+
+  # Test absolute position option
+  d_position <- compute_fourth_atom_position(a, b, c, bond_angle = 90, bond_length = 1, torsion_angle = 0, return_absolute_position = TRUE)
+
+  # Check output is a numeric vector of length 3
+  expect_type(d_position, "double")
+  expect_length(d_position, 3)
+
+  # Check that all values are finite
+  expect_true(all(is.finite(d_position)))
+
+  # Verify relationship: bond_vector + c should equal d_position
+  expect_equal(bond_vector + c, d_position, tolerance = 1e-10)
+})
+
+test_that("compute_fourth_atom_position bond vector functionality", {
+  # Skip if compas is not available
+  skip_if_not_installed("compas")
+
+  # Define first three atoms
+  a <- c(0, 0, 0)
+  b <- c(1, 0, 0)
+  c <- c(1, 1, 0)
+
+  # Test parameters
+  bond_angle <- 90
+  bond_length <- 2
+  torsion_angle <- 45
+
+  # Get bond vector (default)
+  bond_vector <- compute_fourth_atom_position(a, b, c, bond_angle, bond_length, torsion_angle)
+
+  # Get absolute position
+  d_position <- compute_fourth_atom_position(a, b, c, bond_angle, bond_length, torsion_angle, return_absolute_position = TRUE)
+
+  # Test that bond vector has correct magnitude
+  expect_equal(magnitude(bond_vector), bond_length, tolerance = 1e-10)
+
+  # Test that bond vector + c equals absolute position
+  expect_equal(bond_vector + c, d_position, tolerance = 1e-10)
+
+  # Test that we can reconstruct the position from bond vector
+  reconstructed_d <- c + bond_vector
+  expect_equal(reconstructed_d, d_position, tolerance = 1e-10)
 })
 
 # Note: Input validation tests removed as the function doesn't validate input dimensions
 # The function will fail when creating the matrix with invalid dimensions, but this
 # is not the primary focus of the function's behavior
 
-test_that("compute_abcd_bond_angle and compute_abcd_dihedral_stats are inverse operations", {
+test_that("compute_fourth_atom_position and compute_abcd_dihedral_stats are inverse operations", {
   # Skip if compas is not available
   skip_if_not_installed("compas")
 
@@ -168,8 +212,8 @@ test_that("compute_abcd_bond_angle and compute_abcd_dihedral_stats are inverse o
   bond_length <- 1.5
   torsion_angle <- 60
 
-  # Compute position of fourth atom
-  d <- compute_abcd_bond_angle(a, b, c, bond_angle, bond_length, torsion_angle)
+  # Compute position of fourth atom (absolute position)
+  d <- compute_fourth_atom_position(a, b, c, bond_angle, bond_length, torsion_angle, return_absolute_position = TRUE)
 
   # Verify by computing dihedral stats
   stats <- compute_abcd_dihedral_stats(a, b, c, d)
@@ -180,7 +224,7 @@ test_that("compute_abcd_bond_angle and compute_abcd_dihedral_stats are inverse o
   expect_equal(stats$torsion_angle, torsion_angle, tolerance = 1e-6)
 })
 
-test_that("compute_abcd_bond_angle handles edge cases", {
+test_that("compute_fourth_atom_position handles edge cases", {
   # Skip if compas is not available
   skip_if_not_installed("compas")
 
@@ -189,18 +233,18 @@ test_that("compute_abcd_bond_angle handles edge cases", {
   b <- c(1, 0, 0)
   c <- c(1, 1, 0)
 
-  # Test with 0 degree torsion angle
-  d1 <- compute_abcd_bond_angle(a, b, c, bond_angle = 90, bond_length = 1, torsion_angle = 0)
-  expect_length(d1, 3)
-  expect_true(all(is.finite(d1)))
+  # Test with 0 degree torsion angle (bond vector)
+  bond_vector1 <- compute_fourth_atom_position(a, b, c, bond_angle = 90, bond_length = 1, torsion_angle = 0)
+  expect_length(bond_vector1, 3)
+  expect_true(all(is.finite(bond_vector1)))
 
-  # Test with 180 degree torsion angle
-  d2 <- compute_abcd_bond_angle(a, b, c, bond_angle = 90, bond_length = 1, torsion_angle = 180)
-  expect_length(d2, 3)
-  expect_true(all(is.finite(d2)))
+  # Test with 180 degree torsion angle (bond vector)
+  bond_vector2 <- compute_fourth_atom_position(a, b, c, bond_angle = 90, bond_length = 1, torsion_angle = 180)
+  expect_length(bond_vector2, 3)
+  expect_true(all(is.finite(bond_vector2)))
 
-  # Test with 90 degree bond angle
-  d3 <- compute_abcd_bond_angle(a, b, c, bond_angle = 90, bond_length = 1, torsion_angle = 90)
+  # Test with 90 degree bond angle (absolute position)
+  d3 <- compute_fourth_atom_position(a, b, c, bond_angle = 90, bond_length = 1, torsion_angle = 90, return_absolute_position = TRUE)
   expect_length(d3, 3)
   expect_true(all(is.finite(d3)))
 })
