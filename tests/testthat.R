@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(trans)
+library(move)
 
-test_check("trans")
+test_check("move")

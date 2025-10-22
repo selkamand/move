@@ -53,6 +53,6 @@ compute_abcd_dihedral_stats(a, b, c, d)
 
 }
 \seealso{
-\code{\link{compute_abcd_bond_angle}} for computing atomic positions
+\code{\link{locate_fourth_atom_position}} for computing atomic positions
 from dihedral parameters.
 }

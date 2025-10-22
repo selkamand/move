@@ -41,7 +41,7 @@
 #' d <- c(3, 0, 0)
 #' compute_abcd_dihedral_stats(a, b, c, d)
 #'
-#' @seealso \code{\link{compute_abcd_bond_angle}} for computing atomic positions
+#' @seealso \code{\link{locate_fourth_atom_position}} for computing atomic positions
 #'   from dihedral parameters.
 #'
 #' @export
@@ -140,11 +140,16 @@ compute_abcd_dihedral_stats <- function(a, b, c, d) {
 #' c <- c(1, 1, 0)
 #'
 #' # Locate absolute position of fourth atom (default behavior)
-#' d_position <- locate_fourth_atom_position(a, b, c, bond_angle = 109.5, bond_length = 1.5, torsion_angle = 60)
+#' d_position <- locate_fourth_atom_position(a, b, c,
+#'   bond_angle = 109.5, bond_length = 1.5, torsion_angle = 60
+#' )
 #' print(d_position)
 #'
 #' # Get bond vector instead
-#' bond_vector <- locate_fourth_atom_position(a, b, c, bond_angle = 109.5, bond_length = 1.5, torsion_angle = 60, return_bond_vector = TRUE)
+#' bond_vector <- locate_fourth_atom_position(a, b, c,
+#'   bond_angle = 109.5, bond_length = 1.5, torsion_angle = 60,
+#'   return_bond_vector = TRUE
+#' )
 #' print(bond_vector)
 #'
 #' # Verify: bond_vector + c should equal d_position

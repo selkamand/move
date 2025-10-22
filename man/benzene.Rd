@@ -31,7 +31,7 @@ metadata suitable for use with molecular visualisation or geometry functions.
 \examples{
 data(benzene)
 head(benzene)
-plotrgl(benzene, bonds = data.frame(origin = 1:6, target = c(2:6, 1)))
+# Note: plotrgl() function not available in this package
 
 }
 \keyword{datasets}
