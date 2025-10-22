@@ -589,6 +589,24 @@ measure_angle_between_vectors <- function(a, b, degrees = FALSE){
   return(theta)
 }
 
+#' Measure the distance between two points
+#'
+#' Computes the Euclidean distance between two points by taking the
+#' magnitude of the difference vector (\code{b - a}).
+#'
+#' @param a Numeric vector giving the first point.
+#' @param b Numeric vector giving the second point.
+#'
+#' @return A numeric scalar giving the Euclidean distance between
+#'   \code{a} and \code{b}.
+#'
+#' @examples
+#' measure_distance_between_two_points(c(0, 0, 0), c(3, 4, 0))  # 5
+#'
+#' @export
+measure_distance_between_two_points <- function(a, b) {
+  magnitude(b - a)
+}
 
 # Apply transformations to tables -----------------------------------------
 

@@ -102,3 +102,56 @@ test_that("numerical stability for nearly parallel vectors", {
   expect_gte(th, 0)
   expect_lte(th, 1e-6)  # should be extremely small
 })
+
+# tests/testthat/test-measure_distance_between_two_points.R
+
+test_that("computes Euclidean distance in 2D", {
+  a <- c(0, 0)
+  b <- c(3, 4)
+  expect_equal(measure_distance_between_two_points(a, b), 5)
+})
+
+test_that("computes Euclidean distance in 3D", {
+  a <- c(1, 2, 0)
+  b <- c(4, 6, 3)
+  # sqrt((3)^2 + (4)^2 + (3)^2) = sqrt(34)
+  expect_equal(
+    measure_distance_between_two_points(a, b),
+    sqrt(34),
+    tolerance = 1e-12
+  )
+})
+
+test_that("is symmetric: d(a,b) == d(b,a)", {
+  a <- c(-2, 7, 1)
+  b <- c(5, -1, 4)
+  dab <- measure_distance_between_two_points(a, b)
+  dba <- measure_distance_between_two_points(b, a)
+  expect_equal(dab, dba, tolerance = 1e-12)
+})
+
+test_that("zero distance for identical points", {
+  p <- c(2.5, -3, 10)
+  expect_equal(measure_distance_between_two_points(p, p), 0)
+})
+
+test_that("handles higher-dimensional vectors", {
+  set.seed(1)
+  a <- rnorm(10)
+  b <- rnorm(10)
+  # Reference using explicit formula
+  ref <- sqrt(sum((b - a)^2))
+  expect_equal(
+    measure_distance_between_two_points(a, b),
+    ref,
+    tolerance = 1e-12
+  )
+})
+
+test_that("distance is non-negative", {
+  a <- c(-1, -2, -3)
+  b <- c(4, 0, 5)
+  d <- measure_distance_between_two_points(a, b)
+  expect_gte(d, 0)
+})
+
