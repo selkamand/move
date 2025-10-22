@@ -472,6 +472,35 @@ convert_plane_normal_offset_to_point <- function(normal, offset) {
 }
 
 
+# Points ------------------------------------------------------------------
+
+#' Create a direction vector from two positions
+#'
+#' Computes the vector from a starting point to an ending point.
+#' Optionally returns a unit (normalized) vector.
+#'
+#' @param start Numeric vector giving the start position.
+#' @param end Numeric vector giving the end position.
+#' @param unit Logical; if \code{TRUE}, return a unit-length vector.
+#'
+#' @return A numeric vector representing the direction from \code{start} to \code{end}.
+#' @examples
+#' create_vector_from_start_end(c(0, 0, 0), c(1, 2, 2))
+#' create_vector_from_start_end(c(0, 0, 0), c(1, 2, 2), unit = TRUE)
+#'
+#' @export
+create_vector_from_start_end <- function(start, end, unit = FALSE){
+
+  if(length(start) != length(end)) stop("Start and end positions need to be the same length")
+  vec <- end - start
+
+  if(unit) {
+    vec <- normalise(vec)
+  }
+
+  return(vec)
+}
+
 # Locate ------------------------------------------------------------------
 #' Locate the geometric center (centroid) of 3D points
 #'
@@ -561,7 +590,6 @@ measure_angle_between_vectors <- function(a, b, degrees = FALSE){
 }
 
 
-
 # Apply transformations to tables -----------------------------------------
 
 # Table is either a data.frame or matrix with column names (x,y, z)
@@ -605,64 +633,3 @@ apply_tranformation_to_table <- function(table, f){
   table$z <- vapply(res, FUN = \(d){d[3]}, FUN.VALUE = numeric(1))
   return(table)
 }
-
-
-# ChemSpecific ------------------------------------------------------------
-
-#' Bond vector CD from length, angle (∠BCD) and torsion (ABCD)
-#'
-#' Builds a right-handed local frame at C and returns the vector C->D
-#' consistent with the given internal coordinates and dihedral sign.
-#'
-#' @param A,B,C Numeric length-3 vectors: Cartesian coords of atoms A, B, C.
-#' @param bond_length Numeric scalar: |CD|.
-#' @param bond_angle Numeric scalar: ∠BCD (degrees by default).
-#' @param torsion_angle Numeric scalar: dihedral ∠ABCD (degrees by default).
-#' @param degrees Logical; if TRUE (default), angles are in degrees.
-#' @return Named numeric vector c(x,y,z) giving C->D.
-#' @export
-bond_vector_from_internal <- function(A, B, C,
-                                      bond_length,
-                                      bond_angle,
-                                      torsion_angle,
-                                      degrees = TRUE) {
-  stopifnot(length(A) == 3, length(B) == 3, length(C) == 3)
-
-  norm <- function(v) sqrt(sum(v * v))
-  normalize <- function(v) {
-    n <- norm(v); if (n == 0) stop("Zero-length vector."); v / n
-  }
-  cross <- function(u, v) c(u[2]*v[3] - u[3]*v[2],
-                            u[3]*v[1] - u[1]*v[3],
-                            u[1]*v[2] - u[2]*v[1])
-
-  # Orthonormal triad at C:
-  e1 <- normalize(B - C)  # C -> B
-
-  # e2: (B -> A) projected perpendicular to e1
-  vBA <- B - A
-  vBA_perp <- vBA - sum(vBA * e1) * e1
-  if (sqrt(sum(vBA_perp^2)) < 1e-12) {
-    # fallback if A,B,C nearly collinear
-    tmp <- if (abs(e1[1]) < 0.9) c(1, 0, 0) else c(0, 1, 0)
-    vBA_perp <- tmp - sum(tmp * e1) * e1
-  }
-  e2 <- normalize(vBA_perp)
-
-  # e3 completes right-handed frame with correct dihedral sign
-  e3 <- normalize(cross(e2, e1))  # NOTE: e2 × e1 (not e1 × e2)
-
-  # angles
-  th <- if (degrees) bond_angle * pi/180 else bond_angle
-  ph <- if (degrees) torsion_angle * pi/180 else torsion_angle
-  L  <- bond_length
-
-  CD <- L * ( cos(th)*e1 + sin(th)*cos(ph)*e2 + sin(th)*sin(ph)*e3 )
-  stats::setNames(CD, c("x", "y", "z"))
-}
-
-# Convenience: absolute coordinates of D
-place_atom_D <- function(A, B, C, bond_length, bond_angle, torsion_angle, degrees = TRUE) {
-  C + bond_vector_from_internal(A, B, C, bond_length, bond_angle, torsion_angle, degrees)
-}
-
