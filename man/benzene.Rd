@@ -31,7 +31,6 @@ metadata suitable for use with molecular visualisation or geometry functions.
 \examples{
 data(benzene)
 head(benzene)
-# Note: plotrgl() function not available in this package
 
 }
 \keyword{datasets}

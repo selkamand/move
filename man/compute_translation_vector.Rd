@@ -18,5 +18,5 @@ numeric vector: \code{target - position}.
 Compute the translation vector from one position to another
 }
 \examples{
-compute_translation_vector(c(1,2,3), c(4,6,3))  # -> c(3,4,0)
+compute_translation_vector(c(1, 2, 3), c(4, 6, 3)) # -> c(3,4,0)
 }

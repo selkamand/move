@@ -17,6 +17,6 @@ Calculates how much of vector \code{a} lies along vector \code{b} (positive if s
 direction, negative if opposite).
 }
 \examples{
-compute_scalar_projection(c(2,3,4), c(1,0,0))  # -> 2
+compute_scalar_projection(c(2, 3, 4), c(1, 0, 0)) # -> 2
 
 }

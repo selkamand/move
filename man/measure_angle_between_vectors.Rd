@@ -25,9 +25,9 @@ Computes the angle between two numeric vectors using the dot product formula:
 The angle can be returned in either radians (default) or degrees.
 }
 \examples{
-measure_angle_between_vectors(c(1, 0, 0), c(0, 1, 0))        # pi/2 radians
-measure_angle_between_vectors(c(1, 0, 0), c(0, 1, 0), degrees = TRUE)  # 90 degrees
-measure_angle_between_vectors(c(1, 0, 0), c(1, 0, 0))        # 0
+measure_angle_between_vectors(c(1, 0, 0), c(0, 1, 0)) # pi/2 radians
+measure_angle_between_vectors(c(1, 0, 0), c(0, 1, 0), degrees = TRUE) # 90 degrees
+measure_angle_between_vectors(c(1, 0, 0), c(1, 0, 0)) # 0
 
 }
 \seealso{

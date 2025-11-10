@@ -20,6 +20,6 @@ Computes the Euclidean distance between two points by taking the
 magnitude of the difference vector (\code{b - a}).
 }
 \examples{
-measure_distance_between_two_points(c(0, 0, 0), c(3, 4, 0))  # 5
+measure_distance_between_two_points(c(0, 0, 0), c(3, 4, 0)) # 5
 
 }

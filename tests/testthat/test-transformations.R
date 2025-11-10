@@ -100,3 +100,26 @@ test_that("plane conversion functions and plane normal validate zero/parallel in
   expect_error(compute_plane_normal_from_vectors(c(1, 0, 0), c(2, 0, 0))) # parallel
   expect_error(compute_plane_normal_from_vectors(c(0, 0, 0), c(0, 1, 0))) # zero
 })
+
+test_that("rotate_vector_around_axis_through_point matches origin-based rotation when point is origin", {
+  v <- c(1, 0, 0)
+  axis <- c(0, 0, 1)
+  angle <- pi / 2
+  expect_equal(
+    rotate_vector_around_axis_through_point(v, axis, c(0, 0, 0), angle),
+    rotate_vector_around_axis(v, axis, angle)
+  )
+})
+
+test_that("rotate_vector_around_axis_through_point rotates around arbitrary point", {
+  v <- c(2, 0, 0)
+  axis <- c(0, 0, 1)
+  point <- c(1, 0, 0)
+  res <- rotate_vector_around_axis_through_point(v, axis, point, pi / 2)
+  expect_equal(res, c(1, 1, 0), tolerance = 1e-8)
+})
+
+test_that("rotate_vector_around_axis_through_point validates inputs", {
+  expect_error(rotate_vector_around_axis_through_point(c(1, 0, 0), c(0, 0, 0), c(0, 0, 0), pi / 2))
+})
+

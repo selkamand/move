@@ -32,8 +32,8 @@ project_vector_into_plane(c(1, 2, 3), c(0, 0, 1))
 # -> c(1, 2, 0)
 
 # Arbitrary plane normal (not unit):
-v  <- c(1, 2, 3)
-n  <- c(0, 1, -1)         # plane normal
+v <- c(1, 2, 3)
+n <- c(0, 1, -1) # plane normal
 v_plane <- project_vector_into_plane(v, n)
 # v decomposes as v_plane (in-plane) + v_normal (along n)
 

@@ -17,6 +17,6 @@ Computes the vector projection of \code{a} onto \code{b}, i.e. the component of 
 that lies along the direction of \code{b}.
 }
 \examples{
-project_vector_into_vector(c(2,3,4), c(1,0,0))  # -> c(2,0,0)
+project_vector_into_vector(c(2, 3, 4), c(1, 0, 0)) # -> c(2,0,0)
 
 }

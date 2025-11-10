@@ -16,5 +16,5 @@ numeric(3) unit normal perpendicular to both.
 Unit normal of the plane spanned by two vectors
 }
 \examples{
-compute_plane_normal_from_vectors(c(1,0,0), c(0,1,0))  # c(0,0,1)
+compute_plane_normal_from_vectors(c(1, 0, 0), c(0, 1, 0)) # c(0,0,1)
 }

@@ -27,9 +27,11 @@ with transformed coordinates.
 # Example: rotate points around Z-axis
 rotate_z <- function(p) {
   angle <- pi / 4
-  c(x = p["x"] * cos(angle) - p["y"] * sin(angle),
+  c(
+    x = p["x"] * cos(angle) - p["y"] * sin(angle),
     y = p["x"] * sin(angle) + p["y"] * cos(angle),
-    z = p["z"])
+    z = p["z"]
+  )
 }
 
 pts <- data.frame(x = c(1, 0), y = c(0, 1), z = 0)

@@ -33,7 +33,8 @@ using Rodrigues' rotation formula. Positive angles follow the right-hand rule.
 }
 \examples{
 # Rotate (1,0,0) by 90° around z-axis -> (0,1,0)
-v <- c(1,0,0); axis <- c(0,0,1)
-rotate_vector_around_axis(v, axis, pi/2)
+v <- c(1, 0, 0)
+axis <- c(0, 0, 1)
+rotate_vector_around_axis(v, axis, pi / 2)
 
 }

@@ -68,25 +68,25 @@ is not defined. We choose a stable axis orthogonal to \code{v} automatically.
 
 \examples{
 # 1) Simple 90° rotation around z: (1,0,0) -> (0,1,0) when target = (0,1,0)
-rotate_vector_to_align_with_target(c(1,0,0), c(0,1,0))
+rotate_vector_to_align_with_target(c(1, 0, 0), c(0, 1, 0))
 
 # 2) Align arbitrary v with (1,1,1): direction matches, length preserved
-v      <- c(2, -3, 4)
+v <- c(2, -3, 4)
 target <- c(1, 1, 1)
-v_rot  <- rotate_vector_to_align_with_target(v, target)
-sqrt(sum(v^2))            # original length
-sqrt(sum(v_rot^2))        # same length
-cor(v_rot, target)        # ~ 1 (directions aligned)
+v_rot <- rotate_vector_to_align_with_target(v, target)
+sqrt(sum(v^2)) # original length
+sqrt(sum(v_rot^2)) # same length
+cor(v_rot, target) # ~ 1 (directions aligned)
 
 # 3) Opposite directions (180°): target is -v's direction
-v      <- c(1, 2, 3)
+v <- c(1, 2, 3)
 target <- -v
 rotate_vector_to_align_with_target(v, target)
 
 # 4) Input validation
 \dontrun{
-rotate_vector_to_align_with_target(c(0,0,0), c(1,0,0))  # error: zero-norm v
-rotate_vector_to_align_with_target(c(1,0,0), c(0,0,0))  # error: zero-norm target
+rotate_vector_to_align_with_target(c(0, 0, 0), c(1, 0, 0)) # error: zero-norm v
+rotate_vector_to_align_with_target(c(1, 0, 0), c(0, 0, 0)) # error: zero-norm target
 }
 
 }

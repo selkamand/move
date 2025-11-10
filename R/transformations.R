@@ -59,6 +59,68 @@ rotate_vector_around_axis <- function(v, rotation_axis, angle, tol = 1e-8, zap =
   return(v_new)
 }
 
+#' Rotate a vector around an axis passing through an arbitrary point
+#'
+#' Rotates a 3D vector `v` about the line defined by `rotation_axis`
+#' and a point `point_on_axis`. The rotation axis need not pass through the origin.
+#'
+#' @param v Numeric length-3 vector representing the position to rotate.
+#' @param rotation_axis Numeric length-3 vector giving the axis direction (will be normalized).
+#' @param point_on_axis Numeric length-3 vector giving a point lying on the rotation axis.
+#' @param angle Numeric scalar (radians); rotation angle (positive follows right-hand rule).
+#' @param tol Numeric tolerance used for degeneracy checks (passed to `rotate_vector_around_axis`).
+#' @param zap Logical; if `TRUE`, small numerical noise is removed via `zapsmall()`.
+#'
+#' @return Numeric length-3 vector giving the rotated position.
+#'
+#' @details
+#' The algorithm translates `v` so the rotation axis passes through the origin,
+#' applies [rotate_vector_around_axis()], then translates back.
+#'
+#' @examples
+#' v <- c(2, 0, 0)
+#' axis <- c(0, 0, 1)
+#' point <- c(1, 0, 0)
+#' rotate_vector_around_axis_through_point(v, axis, point, pi / 2)
+#' # Returns c(1, 1, 0)
+#'
+#' @export
+rotate_vector_around_axis_through_point <- function(v,
+                                                    rotation_axis,
+                                                    point_on_axis,
+                                                    angle,
+                                                    tol = 1e-8,
+                                                    zap = TRUE) {
+  if (!is.numeric(v) || length(v) != 3L) stop("`v` must be a numeric vector of length 3.")
+  if (!is.numeric(rotation_axis) || length(rotation_axis) != 3L) stop("`rotation_axis` must be a numeric vector of length 3.")
+  if (!is.numeric(point_on_axis) || length(point_on_axis) != 3L) stop("`point_on_axis` must be a numeric vector of length 3.")
+
+  v <- unname(v)
+  rotation_axis <- unname(rotation_axis)
+  point_on_axis <- unname(point_on_axis)
+
+  if (sqrt(sum(rotation_axis^2)) < tol) {
+    stop("`rotation_axis` must be non-zero.")
+  }
+
+  v_centered <- v - point_on_axis
+  rotated_centered <- rotate_vector_around_axis(
+    v_centered,
+    rotation_axis,
+    angle,
+    tol = tol,
+    zap = FALSE
+  )
+
+  v_rotated <- rotated_centered + point_on_axis
+
+  if (zap) {
+    v_rotated <- zapsmall(v_rotated)
+  }
+
+  return(v_rotated)
+}
+
 
 #' Rotate a 3D vector to align with a target direction (Rodrigues' formula)
 #'

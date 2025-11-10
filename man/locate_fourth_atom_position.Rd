@@ -56,14 +56,16 @@ b <- c(1, 0, 0)
 c <- c(1, 1, 0)
 
 # Locate absolute position of fourth atom (default behavior)
-d_position <- locate_fourth_atom_position(a, b, c, 
-  bond_angle = 109.5, bond_length = 1.5, torsion_angle = 60)
+d_position <- locate_fourth_atom_position(a, b, c,
+  bond_angle = 109.5, bond_length = 1.5, torsion_angle = 60
+)
 print(d_position)
 
 # Get bond vector instead
-bond_vector <- locate_fourth_atom_position(a, b, c, 
-  bond_angle = 109.5, bond_length = 1.5, torsion_angle = 60, 
-  return_bond_vector = TRUE)
+bond_vector <- locate_fourth_atom_position(a, b, c,
+  bond_angle = 109.5, bond_length = 1.5, torsion_angle = 60,
+  return_bond_vector = TRUE
+)
 print(bond_vector)
 
 # Verify: bond_vector + c should equal d_position

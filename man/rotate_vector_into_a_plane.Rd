@@ -26,5 +26,5 @@ within the plane defined by its normal vector \code{plane_normal}. The rotation
 preserves the magnitude of \code{v}, unlike a projection which shortens it.
 }
 \examples{
-rotate_vector_into_a_plane(c(1,2,3), c(0,1,-1))
+rotate_vector_into_a_plane(c(1, 2, 3), c(0, 1, -1))
 }
