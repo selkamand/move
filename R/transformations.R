@@ -160,7 +160,7 @@ rotate_vector_to_align_with_target <- function(v, target, tol=1e-8, return = c("
   parallel <- sqrt(sum(crossproduct^2)) < tol # Deal with parallel v & target (no rotation required)
 
   if(parallel & return == "v_new"){ return(v)}
-  else if(parallel) return(angle = 0, rotation_axis = crossproduct)
+  else if(parallel) return(list(angle = 0, rotation_axis = crossproduct))
   n <- normalise(pracma::cross(v, target))
 
   # Find the rotation angle
@@ -244,7 +244,6 @@ rotate_vector_into_a_plane <- function(v, plane_normal, return = c("v_new", "axi
 
   return(v_new)
 }
-
 
 # Projection --------------------------------------------------------------
 #' Project one vector onto another
