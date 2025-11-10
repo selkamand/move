@@ -847,3 +847,55 @@ apply_tranformation_to_table <- function(table, f) {
   }, FUN.VALUE = numeric(1))
   return(table)
 }
+
+#' Rotate all points in a table around an axis
+#'
+#' Rotates each row of a coordinate table (with columns `x`, `y`, `z`) about a
+#' specified axis by a given angle. The axis may pass through an arbitrary point
+#' (default is the origin).
+#'
+#' @param table A data frame or matrix containing columns `x`, `y`, `z`.
+#' @param rotation_axis Numeric length-3 vector giving the axis direction
+#'   (need not be unit; will be normalized internally).
+#' @param angle Numeric scalar (radians); rotation angle (right-hand rule).
+#' @param point_on_axis Optional numeric length-3 vector for a point on the axis
+#'   (default `c(0,0,0)`).
+#' @param tol Numeric tolerance for degeneracy checks.
+#' @param zap Logical; if `TRUE`, zaps small numerical noise.
+#'
+#' @return The input `table` with rotated `x`, `y`, `z` columns.
+#'
+#' @examples
+#' pts <- data.frame(x = c(2, 3), y = c(0, 0), z = c(0, 0))
+#' axis <- c(0, 0, 1)
+#' pivot <- c(1, 0, 0)
+#' rotate_table_around_axis(pts, axis, pi / 2, point_on_axis = pivot)
+#'
+#' @export
+rotate_table_around_axis <- function(table,
+                                     rotation_axis,
+                                     angle,
+                                     point_on_axis = c(0, 0, 0),
+                                     tol = 1e-8,
+                                     zap = TRUE) {
+  if (!all(c("x", "y", "z") %in% colnames(table))) {
+    stop("`table` must contain columns 'x', 'y', and 'z'.")
+  }
+  coords <- as.matrix(table[c("x", "y", "z")])
+  rotate_one <- function(v) {
+    rotate_vector_around_axis_through_point(v,
+      rotation_axis = rotation_axis,
+      point_on_axis = point_on_axis,
+      angle = angle,
+      tol = tol,
+      zap = zap
+    )
+  }
+  res <- apply(coords, 1, rotate_one)
+  if (is.vector(res)) res <- matrix(res, nrow = 3)
+  res <- t(res)
+  table$x <- res[, 1]
+  table$y <- res[, 2]
+  table$z <- res[, 3]
+  table
+}
