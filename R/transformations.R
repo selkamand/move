@@ -1,6 +1,3 @@
-
-
-
 # Rotation ----------------------------------------------------------------
 #' Rotate a vector around an axis by a given angle
 #'
@@ -21,33 +18,43 @@
 #'
 #' @examples
 #' # Rotate (1,0,0) by 90° around z-axis -> (0,1,0)
-#' v <- c(1,0,0); axis <- c(0,0,1)
-#' rotate_vector_around_axis(v, axis, pi/2)
+#' v <- c(1, 0, 0)
+#' axis <- c(0, 0, 1)
+#' rotate_vector_around_axis(v, axis, pi / 2)
 #'
 #' @export
-rotate_vector_around_axis <- function(v, rotation_axis, angle, tol=1e-8, zap = TRUE){
-
+rotate_vector_around_axis <- function(v, rotation_axis, angle, tol = 1e-8, zap = TRUE) {
   # Unname inputs
-  v <- unname(v); rotation_axis <- unname(rotation_axis)
+  v <- unname(v)
+  rotation_axis <- unname(rotation_axis)
 
   # If zero return untransformed
-  if(sum(abs(v)) < tol) return(v)
+  if (sum(abs(v)) < tol) {
+    return(v)
+  }
 
   # If angle = 0 return untransformed
-  if(angle == 0) return(v)
+  if (abs(angle) < tol) {
+    return(v)
+  }
+
+  # rotation axis must be non-zero
+  if (sqrt(sum(rotation_axis^2)) < tol) {
+    stop("`rotation_axis` must be non-zero.")
+  }
 
   # Get stats required for rodrigues rotation
-  sintheta = as.vector(sin(angle))
-  costheta = as.vector(cos(angle))
+  sintheta <- as.vector(sin(angle))
+  costheta <- as.vector(cos(angle))
 
   # normalise the rotation axis
-  n = normalise(rotation_axis)
+  n <- normalise(rotation_axis)
 
   # Rotate vector
-  v_new = v * costheta + (pracma::cross(n, v)) * sintheta + n * as.vector(n %*% v) * (1-costheta)
+  v_new <- v * costheta + (pracma::cross(n, v)) * sintheta + n * as.vector(n %*% v) * (1 - costheta)
 
   # Return vector with very small numbers zapped to zero
-  if(zap) v_new <- zapsmall(v_new)
+  if (zap) v_new <- zapsmall(v_new)
 
   return(v_new)
 }
@@ -110,30 +117,29 @@ rotate_vector_around_axis <- function(v, rotation_axis, angle, tol=1e-8, zap = T
 #'
 #' @examples
 #' # 1) Simple 90° rotation around z: (1,0,0) -> (0,1,0) when target = (0,1,0)
-#' rotate_vector_to_align_with_target(c(1,0,0), c(0,1,0))
+#' rotate_vector_to_align_with_target(c(1, 0, 0), c(0, 1, 0))
 #'
 #' # 2) Align arbitrary v with (1,1,1): direction matches, length preserved
-#' v      <- c(2, -3, 4)
+#' v <- c(2, -3, 4)
 #' target <- c(1, 1, 1)
-#' v_rot  <- rotate_vector_to_align_with_target(v, target)
-#' sqrt(sum(v^2))            # original length
-#' sqrt(sum(v_rot^2))        # same length
-#' cor(v_rot, target)        # ~ 1 (directions aligned)
+#' v_rot <- rotate_vector_to_align_with_target(v, target)
+#' sqrt(sum(v^2)) # original length
+#' sqrt(sum(v_rot^2)) # same length
+#' cor(v_rot, target) # ~ 1 (directions aligned)
 #'
 #' # 3) Opposite directions (180°): target is -v's direction
-#' v      <- c(1, 2, 3)
+#' v <- c(1, 2, 3)
 #' target <- -v
 #' rotate_vector_to_align_with_target(v, target)
 #'
 #' # 4) Input validation
 #' \dontrun{
-#' rotate_vector_to_align_with_target(c(0,0,0), c(1,0,0))  # error: zero-norm v
-#' rotate_vector_to_align_with_target(c(1,0,0), c(0,0,0))  # error: zero-norm target
+#' rotate_vector_to_align_with_target(c(0, 0, 0), c(1, 0, 0)) # error: zero-norm v
+#' rotate_vector_to_align_with_target(c(1, 0, 0), c(0, 0, 0)) # error: zero-norm target
 #' }
 #'
 #' @export
-rotate_vector_to_align_with_target <- function(v, target, tol=1e-8, return = c("v_new", "axis_plus_angle")){
-
+rotate_vector_to_align_with_target <- function(v, target, tol = 1e-8, return = c("v_new", "axis_plus_angle")) {
   return <- rlang::arg_match(return)
 
   if (!is.numeric(v) || length(v) != 3L) {
@@ -143,25 +149,27 @@ rotate_vector_to_align_with_target <- function(v, target, tol=1e-8, return = c("
     stop("`target` must be a numeric vector of length 3.")
   }
 
-  if(sum(abs(v)) < tol) {
+  if (sum(abs(v)) < tol) {
     warning("Cannot rotate a zero vector")
+    return(NA)
+  }
+  if (sum(abs(target)) < tol) {
+    warning("Cannot align to a zero target vector")
     return(NA)
   }
 
   # Unname inputs
-  v <- unname(v); target <- unname(target)
+  v <- unname(v)
+  target <- unname(target)
 
   # Ensure target is a unit vector
   target_unit <- normalise(target)
   v_unit <- normalise(v)
 
-  # Find the rotation axis (n) - i.e. the normalised vector perpendicular to the plane created by vectors v and target
-  crossproduct <- pracma::cross(v, target)
-  parallel <- sqrt(sum(crossproduct^2)) < tol # Deal with parallel v & target (no rotation required)
-
-  if(parallel & return == "v_new"){ return(v)}
-  else if(parallel) return(list(angle = 0, rotation_axis = crossproduct))
-  n <- normalise(pracma::cross(v, target))
+  # Compute rotation axis and angle components
+  crossproduct <- pracma::cross(v_unit, target_unit)
+  cross_norm <- sqrt(sum(crossproduct^2))
+  n <- if (cross_norm < tol) c(NA_real_, NA_real_, NA_real_) else crossproduct / cross_norm
 
   # Find the rotation angle
   costheta <- as.vector(v_unit %*% target_unit)
@@ -170,22 +178,33 @@ rotate_vector_to_align_with_target <- function(v, target, tol=1e-8, return = c("
   costheta <- clamp(costheta, min = -1, max = 1)
 
   # Rotation in radians
-  theta = acos(costheta)
+  theta <- acos(costheta)
 
-  # If theta is 0 then they're parallel and we can return v as is
-  if(theta == 0) return(v)
-  if(theta == pi) {
-    # If v and target are anti-parallel, rotate target by 90 degrees and use that as the new rotation axis
-    n = normalise(pracma::cross(target_unit, c(1, 0, 0)))
+  # Parallel case (theta ~ 0)
+  if (abs(theta) < tol) {
+    if (return == "axis_plus_angle") {
+      return(list("axis" = c(1, 0, 0), "angle" = 0))
+    } else {
+      return(v)
+    }
+  }
+  # Anti-parallel case (theta ~ pi): choose robust axis orthogonal to v
+  if (abs(theta - pi) < tol) {
+    basis <- rbind(c(1, 0, 0), c(0, 1, 0), c(0, 0, 1))
+    dots <- as.numeric(basis %*% v_unit)
+    idx <- which.min(abs(dots))
+    cand <- pracma::cross(v_unit, basis[idx, ])
+    if (sqrt(sum(cand^2)) < tol) {
+      idx <- if (idx == 1) 2 else 1
+      cand <- pracma::cross(v_unit, basis[idx, ])
+    }
+    n <- normalise(cand)
   }
 
-  # Rotation in degrees
-  # theta * 180/pi
-
-  sintheta = as.vector(sin(theta))
+  # Rotation in degrees (theta * 180/pi) if requested by caller elsewhere
 
   # Early return of paramaters
-  if(return == "axis_plus_angle") {
+  if (return == "axis_plus_angle") {
     return(list("axis" = n, "angle" = theta))
   }
 
@@ -206,10 +225,9 @@ rotate_vector_to_align_with_target <- function(v, target, tol=1e-8, return = c("
 #' @param return whether to return the new (transformed) vector or a list of paramaters required to perform the rotation (axis and angle).
 #' @return either a rotated vector or a list with elements `axis` (unit vector) and `angle` (radians) depending on value of `return` param.
 #' @examples
-#' rotate_vector_into_a_plane(c(1,2,3), c(0,1,-1))
+#' rotate_vector_into_a_plane(c(1, 2, 3), c(0, 1, -1))
 #' @export
 rotate_vector_into_a_plane <- function(v, plane_normal, return = c("v_new", "axis_plus_angle")) {
-
   # Argument Checks
   return <- rlang::arg_match(return)
 
@@ -218,6 +236,9 @@ rotate_vector_into_a_plane <- function(v, plane_normal, return = c("v_new", "axi
   plane_normal <- unname(plane_normal)
 
   # Normalise plane normal
+  if (sqrt(sum(plane_normal^2)) == 0) {
+    stop("`plane_normal` must be non-zero.")
+  }
   plane_normal_norm <- normalise(plane_normal)
 
   # --- Compute in-plane component of v ---
@@ -228,14 +249,15 @@ rotate_vector_into_a_plane <- function(v, plane_normal, return = c("v_new", "axi
   # --- Compute rotation axis ---
   # Axis perpendicular to both v and its in-plane projection
   u <- pracma::cross(v, v_inplane)
-  k <- normalise(u)                  # unit rotation axis
-  u_l2 <- sqrt(sum(u^2))             # magnitude of u (for angle)
+  u_norm <- sqrt(sum(u^2))
+  k <- if (u_norm == 0) c(1, 0, 0) else normalise(u) # unit rotation axis
+  u_l2 <- sqrt(sum(u^2)) # magnitude of u (for angle)
 
   # --- Compute rotation angle (radians) ---
   theta <- atan2(u_l2, as.numeric(v %*% v_inplane))
 
   # Return rotation axis and angle
-  if(return == "axis_plus_angle") {
+  if (return == "axis_plus_angle") {
     return(list(axis = k, angle = theta))
   }
 
@@ -254,15 +276,15 @@ rotate_vector_into_a_plane <- function(v, plane_normal, return = c("v_new", "axi
 #' @param a,b Numeric vectors of equal length.
 #' @returns A numeric vector parallel to `b`.
 #' @examples
-#' project_vector_into_vector(c(2,3,4), c(1,0,0))  # -> c(2,0,0)
+#' project_vector_into_vector(c(2, 3, 4), c(1, 0, 0)) # -> c(2,0,0)
 #'
 #' @export
 project_vector_into_vector <- function(a, b) {
   if (length(a) != length(b)) stop("Vectors must have the same length.")
   if (sum(b^2) == 0) stop("Cannot project onto a zero-length vector.")
 
-  scalar_coeff <- sum(a * b) / sum(b * b)  # (a·b)/(b·b)
-  projection <- scalar_coeff * b           # multiply scalar by vector
+  scalar_coeff <- sum(a * b) / sum(b * b) # (a·b)/(b·b)
+  projection <- scalar_coeff * b # multiply scalar by vector
   return(projection)
 }
 
@@ -274,14 +296,14 @@ project_vector_into_vector <- function(a, b) {
 #' @param a,b Numeric vectors of equal length.
 #' @returns Numeric scalar giving the signed magnitude of the projection.
 #' @examples
-#' compute_scalar_projection(c(2,3,4), c(1,0,0))  # -> 2
+#' compute_scalar_projection(c(2, 3, 4), c(1, 0, 0)) # -> 2
 #'
 #' @export
 compute_scalar_projection <- function(a, b) {
   if (length(a) != length(b)) stop("Vectors must have the same length.")
   if (sum(b^2) == 0) stop("Cannot project onto a zero-length vector.")
 
-  scalar_proj <- sum(a * b) / sqrt(sum(b^2))  # (a·b)/‖b‖
+  scalar_proj <- sum(a * b) / sqrt(sum(b^2)) # (a·b)/‖b‖
   return(scalar_proj)
 }
 
@@ -308,20 +330,23 @@ compute_scalar_projection <- function(a, b) {
 #' # -> c(1, 2, 0)
 #'
 #' # Arbitrary plane normal (not unit):
-#' v  <- c(1, 2, 3)
-#' n  <- c(0, 1, -1)         # plane normal
+#' v <- c(1, 2, 3)
+#' n <- c(0, 1, -1) # plane normal
 #' v_plane <- project_vector_into_plane(v, n)
 #' # v decomposes as v_plane (in-plane) + v_normal (along n)
 #'
 #' @export
 project_vector_into_plane <- function(v, plane_normal) {
-  if (!is.numeric(v) || !is.numeric(plane_normal))
+  if (!is.numeric(v) || !is.numeric(plane_normal)) {
     stop("`v` and `plane_normal` must be numeric vectors.")
-  if (length(v) != length(plane_normal))
+  }
+  if (length(v) != length(plane_normal)) {
     stop("`v` and `plane_normal` must have the same length.")
+  }
   nn <- sum(plane_normal^2)
-  if (nn == 0)
+  if (nn == 0) {
     stop("`plane_normal` must be non-zero.")
+  }
   v - (sum(v %*% plane_normal) / nn) * plane_normal
 }
 
@@ -343,8 +368,9 @@ project_vector_into_plane <- function(v, plane_normal) {
 #'
 #' @export
 translate_position_by_vector <- function(position, vector) {
-  if (length(position) != length(vector))
+  if (length(position) != length(vector)) {
     stop("To translate a position by a vector, both must have the same number of elements.")
+  }
   position + vector
 }
 
@@ -365,6 +391,7 @@ translate_position_by_vector <- function(position, vector) {
 #'
 #' @export
 translate_position_in_direction <- function(position, direction, magnitude) {
+  if (sqrt(sum(direction^2)) == 0) stop("`direction` must be non-zero.")
   translation_vector <- normalise(direction) * magnitude
   position + translation_vector
 }
@@ -376,11 +403,12 @@ translate_position_in_direction <- function(position, direction, magnitude) {
 #' @param target numeric vector; destination position (same length).
 #' @return numeric vector: \code{target - position}.
 #' @examples
-#' compute_translation_vector(c(1,2,3), c(4,6,3))  # -> c(3,4,0)
+#' compute_translation_vector(c(1, 2, 3), c(4, 6, 3)) # -> c(3,4,0)
 #' @export
-compute_translation_vector <- function(position, target){
-  if (length(position) != length(target))
+compute_translation_vector <- function(position, target) {
+  if (length(position) != length(target)) {
     stop("Both positions must have the same number of elements.")
+  }
   target - position
 }
 
@@ -391,10 +419,12 @@ compute_translation_vector <- function(position, target){
 #' @param a,b numeric(3) spanning vectors (non-parallel).
 #' @return numeric(3) unit normal perpendicular to both.
 #' @examples
-#' compute_plane_normal_from_vectors(c(1,0,0), c(0,1,0))  # c(0,0,1)
+#' compute_plane_normal_from_vectors(c(1, 0, 0), c(0, 1, 0)) # c(0,0,1)
 #' @export
-compute_plane_normal_from_vectors <- function(a, b){
-  normalise(pracma::cross(a, b))
+compute_plane_normal_from_vectors <- function(a, b) {
+  cp <- pracma::cross(a, b)
+  if (sqrt(sum(cp^2)) == 0) stop("Input vectors must be non-parallel and non-zero.")
+  normalise(cp)
 }
 
 #' Convert a plane from (point, normal) to (unit normal, offset)
@@ -434,8 +464,9 @@ compute_plane_normal_from_vectors <- function(a, b){
 #' @export
 convert_plane_point_normal_to_normal_offset <- function(normal, point) {
   stopifnot(length(normal) == 3L, length(point) == 3L)
+  if (sqrt(sum(normal^2)) == 0) stop("`normal` must be non-zero.")
   n_hat <- normalise(normal)
-  offset <- sum(n_hat * point)   # s = n_hat · point
+  offset <- sum(n_hat * point) # s = n_hat · point
   list(normal = n_hat, offset = as.numeric(offset))
 }
 
@@ -465,6 +496,7 @@ convert_plane_point_normal_to_normal_offset <- function(normal, point) {
 #' @export
 convert_plane_normal_offset_to_point <- function(normal, offset) {
   stopifnot(length(normal) == 3L, length(offset) == 1L)
+  if (sqrt(sum(normal^2)) == 0) stop("`normal` must be non-zero.")
   n_hat <- normalise(normal)
   point_on_plane <- as.numeric(offset) * n_hat
   list(point = point_on_plane, normal = n_hat)
@@ -488,12 +520,15 @@ convert_plane_normal_offset_to_point <- function(normal, offset) {
 #' create_vector_from_start_end(c(0, 0, 0), c(1, 2, 2), unit = TRUE)
 #'
 #' @export
-create_vector_from_start_end <- function(start, end, unit = FALSE){
-
-  if(length(start) != length(end)) stop("Start and end positions need to be the same length")
+create_vector_from_start_end <- function(start, end, unit = FALSE) {
+  if (length(start) != length(end)) stop("Start and end positions need to be the same length")
   vec <- end - start
 
-  if(unit) {
+  if (unit) {
+    if (sqrt(sum(vec^2)) == 0) {
+      warning("Cannot normalise zero-length vector (start == end). Returning NA")
+      return(c(NaN, NaN, NaN))
+    }
     vec <- normalise(vec)
   }
 
@@ -537,17 +572,25 @@ locate_center <- function(...) {
     if (!all(c("x", "y", "z") %in% names(df))) {
       stop("Data frame must have columns named 'x', 'y', and 'z'.")
     }
-    x <- df$x; y <- df$y; z <- df$z
+    x <- df$x
+    y <- df$y
+    z <- df$z
   } else if (length(args) == 1 && is.matrix(args[[1]])) {
     mat <- args[[1]]
     if (ncol(mat) < 3) stop("Matrix must have at least 3 columns for x, y, z.")
-    x <- mat[, 1]; y <- mat[, 2]; z <- mat[, 3]
+    x <- mat[, 1]
+    y <- mat[, 2]
+    z <- mat[, 3]
   } else if (length(args) == 3) {
-    x <- args[[1]]; y <- args[[2]]; z <- args[[3]]
-    if (!(is.numeric(x) && is.numeric(y) && is.numeric(z)))
+    x <- args[[1]]
+    y <- args[[2]]
+    z <- args[[3]]
+    if (!(is.numeric(x) && is.numeric(y) && is.numeric(z))) {
       stop("x, y, z must all be numeric vectors.")
-    if (!(length(x) == length(y) && length(y) == length(z)))
+    }
+    if (!(length(x) == length(y) && length(y) == length(z))) {
       stop("x, y, z must have the same length.")
+    }
   } else {
     stop("Provide either a data frame/matrix with x, y, z columns, or three numeric vectors.")
   }
@@ -575,16 +618,24 @@ locate_center <- function(...) {
 #'   Returns \code{NA} if either vector has zero magnitude.
 #'
 #' @examples
-#' measure_angle_between_vectors(c(1, 0, 0), c(0, 1, 0))        # pi/2 radians
-#' measure_angle_between_vectors(c(1, 0, 0), c(0, 1, 0), degrees = TRUE)  # 90 degrees
-#' measure_angle_between_vectors(c(1, 0, 0), c(1, 0, 0))        # 0
+#' measure_angle_between_vectors(c(1, 0, 0), c(0, 1, 0)) # pi/2 radians
+#' measure_angle_between_vectors(c(1, 0, 0), c(0, 1, 0), degrees = TRUE) # 90 degrees
+#' measure_angle_between_vectors(c(1, 0, 0), c(1, 0, 0)) # 0
 #'
 #' @seealso [radians_to_degrees()], [degrees_to_radians()]
 #' @export
-measure_angle_between_vectors <- function(a, b, degrees = FALSE){
-  costheta <- (a %*% b) / (magnitude(a) * magnitude(b))
+measure_angle_between_vectors <- function(a, b, degrees = FALSE) {
+  na <- magnitude(a)
+  nb <- magnitude(b)
+  if (na == 0 || nb == 0) {
+    return(NA_real_)
+  }
+  costheta <- as.numeric((a %*% b) / (na * nb))
+  costheta <- clamp(costheta, -1, 1)
   theta <- as.numeric(acos(costheta))
-  if (degrees) { theta <- radians_to_degrees(theta) }
+  if (degrees) {
+    theta <- radians_to_degrees(theta)
+  }
   return(theta)
 }
 
@@ -614,14 +665,16 @@ measure_angle_between_vectors <- function(a, b, degrees = FALSE){
 #' measure_signed_angle_between_planes(n1, n2, ref_axis = c(1, 0, 0))
 #'
 #' @export
-measure_signed_angle_between_planes <- function(n1, n2, ref_axis, degrees=TRUE){
+measure_signed_angle_between_planes <- function(n1, n2, ref_axis, degrees = TRUE) {
+  if (sqrt(sum(n1^2)) == 0 || sqrt(sum(n2^2)) == 0) stop("Plane normals must be non-zero.")
+  if (sqrt(sum(ref_axis^2)) == 0) stop("Reference axis must be non-zero.")
   n1u <- n1 / sqrt(sum(n1^2))
   n2u <- n2 / sqrt(sum(n2^2))
   axis_u <- ref_axis / sqrt(sum(ref_axis^2))
 
   m1 <- pracma::cross(axis_u, n1u)
-  x <- sum(n1u * n2u) #dot product
-  y <- sum(m1 * n2u) #dot product
+  x <- sum(n1u * n2u) # dot product
+  y <- sum(m1 * n2u) # dot product
 
   angle <- atan2(y, x)
   if (degrees) angle <- radians_to_degrees(angle)
@@ -651,9 +704,12 @@ measure_signed_angle_between_planes <- function(n1, n2, ref_axis, degrees=TRUE){
 #' @seealso [measure_signed_angle_between_planes()]
 #' @export
 measure_angle_between_planes <- function(n1, n2, degrees = TRUE) {
+  if (sqrt(sum(n1^2)) == 0 || sqrt(sum(n2^2)) == 0) stop("Plane normals must be non-zero.")
   n1u <- n1 / sqrt(sum(n1 * n1))
   n2u <- n2 / sqrt(sum(n2 * n2))
-  angle <- acos(sum(n1u * n2u))
+  dp <- sum(n1u * n2u)
+  dp <- max(-1, min(1, dp))
+  angle <- acos(dp)
   if (degrees) angle <- radians_to_degrees(angle)
   angle
 }
@@ -671,7 +727,7 @@ measure_angle_between_planes <- function(n1, n2, degrees = TRUE) {
 #'   \code{a} and \code{b}.
 #'
 #' @examples
-#' measure_distance_between_two_points(c(0, 0, 0), c(3, 4, 0))  # 5
+#' measure_distance_between_two_points(c(0, 0, 0), c(3, 4, 0)) # 5
 #'
 #' @export
 measure_distance_between_two_points <- function(a, b) {
@@ -703,21 +759,29 @@ measure_distance_between_two_points <- function(a, b) {
 #' # Example: rotate points around Z-axis
 #' rotate_z <- function(p) {
 #'   angle <- pi / 4
-#'   c(x = p["x"] * cos(angle) - p["y"] * sin(angle),
+#'   c(
+#'     x = p["x"] * cos(angle) - p["y"] * sin(angle),
 #'     y = p["x"] * sin(angle) + p["y"] * cos(angle),
-#'     z = p["z"])
+#'     z = p["z"]
+#'   )
 #' }
 #'
 #' pts <- data.frame(x = c(1, 0), y = c(0, 1), z = 0)
 #' apply_tranformation_to_table(pts, rotate_z)
 #'
 #' @export
-apply_tranformation_to_table <- function(table, f){
+apply_tranformation_to_table <- function(table, f) {
   coords <- table[c("x", "y", "z")]
-  res = apply(X = coords, MARGIN = 1, FUN = f, simplify = FALSE)
+  res <- apply(X = coords, MARGIN = 1, FUN = f, simplify = FALSE)
 
-  table$x <- vapply(res, FUN = \(d){d[1]}, FUN.VALUE = numeric(1))
-  table$y <- vapply(res, FUN = \(d){d[2]}, FUN.VALUE = numeric(1))
-  table$z <- vapply(res, FUN = \(d){d[3]}, FUN.VALUE = numeric(1))
+  table$x <- vapply(res, FUN = \(d){
+    d[1]
+  }, FUN.VALUE = numeric(1))
+  table$y <- vapply(res, FUN = \(d){
+    d[2]
+  }, FUN.VALUE = numeric(1))
+  table$z <- vapply(res, FUN = \(d){
+    d[3]
+  }, FUN.VALUE = numeric(1))
   return(table)
 }

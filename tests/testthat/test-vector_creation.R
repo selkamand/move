@@ -53,8 +53,8 @@ test_that("zero displacement returns zero vector when unit = FALSE", {
 
 test_that("zero displacement with unit = TRUE returns missing data", {
   start <- c(2, -3, 7)
-  end   <- start
-  expect_equal(
+  end <- start
+  suppressWarnings(expect_equal(
     create_vector_from_start_end(start, end, unit = TRUE), expected = c(NaN, NaN, NaN)
-  )
+  ))
 })
