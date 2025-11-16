@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# move
+# move <img src="man/figures/logo.png" align="right" height="138" alt="" />
 
 <!-- badges: start -->
 
@@ -124,20 +124,17 @@ Planes can be represented in two equivalent forms:
     Defined by a 3D point `point` that lies on the plane and a normal
     vector `normal`.  
     Equation:  
-    ``` math
-
+    $$
     \hat{n} \cdot (x - p) = 0
-    ```
+    $$
 
 2.  **Normal–offset (Hesse) form**  
     Defined by a **unit** normal vector `normal` and a **signed offset**
     (distance) `offset` from the origin along that normal.  
     Equation:  
-    ``` math
-
+    $$
     \hat{n} \cdot x = s
-    ```
-    where `s` = `offset`.
+    $$ where `s` = `offset`.
 
 These forms can be converted with the following functions:
 
