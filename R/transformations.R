@@ -489,6 +489,108 @@ compute_plane_normal_from_vectors <- function(a, b) {
   normalise(cp)
 }
 
+
+#' Fit a plane to 3D points
+#'
+#' Fits a geometric plane to a set of 3D points given in columns `x`, `y`, and `z`.
+#' For exactly three non-collinear points, the plane normal is computed analytically
+#' from the cross product of two spanning vectors. For more than three points, a
+#' least-squares best-fit plane is obtained via singular value decomposition (SVD)
+#' of the centered coordinates.
+#'
+#' The fitted plane is of the form
+#' \deqn{n \cdot x + d = 0}
+#' where \code{n} is a unit normal vector and \code{d} is the scalar offset.
+#'
+#' @param points A data frame or matrix with numeric columns \code{x}, \code{y},
+#'   and \code{z} giving point coordinates.
+#' @param careful Logical; if \code{TRUE} (default), run basic input assertions
+#'   (presence of \code{x}, \code{y}, \code{z} columns and at least one row).
+#'
+#' @return
+#' For \strong{more than three} points, a list with components:
+#' \describe{
+#'   \item{normal}{Numeric length-3 unit normal vector (named \code{x}, \code{y}, \code{z}).}
+#'   \item{offset}{Numeric scalar \code{d} in the plane equation \code{normal · x + d = 0}.}
+#' }
+#' For \strong{exactly three} points, a numeric length-3 unit normal vector is
+#' returned.
+#'
+#' @details
+#' For \code{n > 3} points, the coordinates are first translated so that their
+#' geometric center lies at the origin, and SVD is applied to the centered
+#' \code{(x,y,z)} matrix. The plane normal is taken as the right singular vector
+#' corresponding to the smallest singular value; the offset is then chosen so
+#' that the plane passes through the original centroid.
+#'
+#' The function errors if fewer than three points are supplied.
+#'
+#' @examples
+#' # Simple plane: z = 0 (points in the xy-plane)
+#' pts <- data.frame(
+#'   x = c(0, 1, 2, 0),
+#'   y = c(0, 0, 1, 2),
+#'   z = 0
+#' )
+#' fit_plane_to_points(pts)
+#'
+#' # Exactly three points defining a plane
+#' pts3 <- data.frame(
+#'   x = c(0, 1, 0),
+#'   y = c(0, 0, 1),
+#'   z = c(0, 0, 0)
+#' )
+#' fit_plane_to_points(pts3)
+#'
+#' @export
+fit_plane_to_points <- function(points, careful = TRUE) {
+  if (careful) {
+    assertions::assert_names_include(points, names = c("x", "y", "z"))
+    assertions::assert(nrow(points) > 0)
+  }
+
+  xyz <- points[, c("x", "y", "z"), drop = FALSE]
+  n_points <- nrow(points)
+
+  if (n_points < 3) {
+    stop("Cannot fit a plane to only [", n_points, "] points")
+  }
+
+  # If you only have 3 points then directly compute the plane
+  if (n_points == 3) {
+    a <- xyz[1, , drop = TRUE]
+    b <- xyz[2, , drop = TRUE]
+    c <- xyz[3, , drop = TRUE]
+
+    ba <- create_vector_from_start_end(start = b, end = a)
+    bc <- create_vector_from_start_end(start = b, end = c)
+
+    plane <- compute_plane_normal_from_vectors(ba, bc)
+    return(plane)
+  }
+
+  # If you have more than 3 points, use SVD to get the best fitting plane
+
+  # Move geometric center to origin
+  center <- colMeans(xyz)
+  xyz[["x"]] <- xyz[["x"]] - center["x"]
+  xyz[["y"]] <- xyz[["y"]] - center["y"]
+  xyz[["z"]] <- xyz[["z"]] - center["z"]
+
+  # Do singular value decomposition
+  sv <- svd(xyz)
+
+  # normal vector is last column of V (smallest singular value direction)
+  normal <- sv$v[, ncol(sv$v)]
+  normal <- normal / sqrt(sum(normal^2))
+  names(normal) <- c("x", "y", "z")
+
+  # plane constant d such that normal·x + d = 0
+  d <- -sum(normal * center)
+
+  return(list(normal = normal, offset = d))
+}
+
 #' Convert a plane from (point, normal) to (unit normal, offset)
 #'
 #' Converts a plane defined by a point lying on it and a (possibly non-unit) normal
