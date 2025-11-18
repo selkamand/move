@@ -532,7 +532,7 @@ compute_plane_normal_from_vectors <- function(a, b) {
 #'   y = c(0, 0, 1, 2),
 #'   z = 0
 #' )
-#' fit_plane_to_points(pts)
+#' compute_plane_from_points(pts)
 #'
 #' # Exactly three points defining a plane
 #' pts3 <- data.frame(
@@ -540,13 +540,13 @@ compute_plane_normal_from_vectors <- function(a, b) {
 #'   y = c(0, 0, 1),
 #'   z = c(0, 0, 0)
 #' )
-#' fit_plane_to_points(pts3)
+#' compute_plane_from_points(pts3)
 #'
 #' @export
-fit_plane_to_points <- function(points, careful = TRUE) {
+compute_plane_from_points <- function(points, careful = TRUE) {
   if (careful) {
-    assertions::assert_names_include(points, names = c("x", "y", "z"))
-    assertions::assert(nrow(points) > 0)
+    if(!all(c("x", "y", "z") %in% names(points))) stop("points must be a data.frame/matrix with columns 'x', 'y' and 'z'")
+    if(nrow(points) <= 0) stop("Cannot fit a plane to only [", n_points ,"]")
   }
 
   xyz <- points[, c("x", "y", "z"), drop = FALSE]
@@ -566,7 +566,12 @@ fit_plane_to_points <- function(points, careful = TRUE) {
     bc <- create_vector_from_start_end(start = b, end = c)
 
     plane <- compute_plane_normal_from_vectors(ba, bc)
-    return(plane)
+    plane_position <- b
+    plane_normal_offset <- convert_plane_point_normal_to_normal_offset(
+      normal = plane,
+      point = plane_position
+    )
+    return(plane_normal_offset)
   }
 
   # If you have more than 3 points, use SVD to get the best fitting plane
