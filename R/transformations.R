@@ -158,9 +158,31 @@ rotate_vector_around_axis_through_point <- function(v,
 #' @param return Character; either \code{"v_new"} (default) to return the rotated vector,
 #'   or \code{"axis_plus_angle"} to return a list with rotation axis and angle.
 #'
-#' @returns A numeric length-3 vector \code{v_prime} representing \code{v} rotated so that its
-#' direction aligns with \code{target}. The \emph{magnitude} of \code{v_prime} matches \code{||v||}.
-#' If return = "axis_plus_angle" returns a unit-vector rotation axis and angle that can be applied in \code{rotate_vector_around_axis()}
+#' @returns
+#' Depending on the value of `return`, the function returns:
+#'
+#' \strong{1. Rotated vector (`return = "v_new"`, default)}
+#' A numeric length-3 vector giving the rotated version of `v`.
+#' The output satisfies:
+#' \itemize{
+#'   \item its \emph{direction} is aligned with `target`,
+#'   \item its \emph{length} is unchanged (`||v_new|| = ||v||`),
+#'   \item it is numerically identical to `v` when no rotation is required.
+#' }
+#'
+#' \strong{2. Rotation parameters (`return = "axis_plus_angle"`)}
+#' A list containing:
+#' \describe{
+#'   \item{axis}{A length-3 \emph{unit} vector describing the rotation axis
+#'         (right-hand rule).}
+#'   \item{angle}{The rotation angle in radians required to align `v` with `target`.}
+#' }
+#' These values can be applied to any other 3D vector using
+#' `rotate_vector_around_axis()`, making it easy to transform multiple
+#' points consistently.
+#'
+#' In either mode, the function handles aligned, anti-aligned, and
+#' numerically degenerate cases robustly (e.g., 180° flips, tiny cross products).
 #'
 #' @section Potential pitfalls:
 #' \itemize{
@@ -543,13 +565,14 @@ compute_plane_normal_from_vectors <- function(a, b) {
 #'
 #' @export
 compute_plane_from_points <- function(points, careful = TRUE) {
+  n_points <- nrow(points)
+
   if (careful) {
     if(!all(c("x", "y", "z") %in% colnames(points))) stop("points must be a data.frame/matrix with columns 'x', 'y' and 'z'")
     if(nrow(points) <= 0) stop("Cannot fit a plane to only [", n_points ,"]")
   }
 
   xyz <- points[, c("x", "y", "z"), drop = FALSE]
-  n_points <- nrow(points)
   center <- colMeans(xyz)
 
   if (n_points < 3) {
@@ -569,9 +592,9 @@ compute_plane_from_points <- function(points, careful = TRUE) {
     plane_position <- b
     plane_normal_offset <- convert_plane_point_normal_to_normal_offset(
       normal = plane,
-      point = plane_position,
-      centroid = center
+      point = plane_position
     )
+    plane_normal_offset$centroid <- center
     return(plane_normal_offset)
   }
 

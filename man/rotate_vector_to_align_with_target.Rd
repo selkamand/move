@@ -23,9 +23,30 @@ only direction matters).}
 or \code{"axis_plus_angle"} to return a list with rotation axis and angle.}
 }
 \value{
-A numeric length-3 vector \code{v_prime} representing \code{v} rotated so that its
-direction aligns with \code{target}. The \emph{magnitude} of \code{v_prime} matches \code{||v||}.
-If return = "axis_plus_angle" returns a unit-vector rotation axis and angle that can be applied in \code{rotate_vector_around_axis()}
+Depending on the value of \code{return}, the function returns:
+
+\strong{1. Rotated vector (\code{return = "v_new"}, default)}
+A numeric length-3 vector giving the rotated version of \code{v}.
+The output satisfies:
+\itemize{
+\item its \emph{direction} is aligned with \code{target},
+\item its \emph{length} is unchanged (\verb{||v_new|| = ||v||}),
+\item it is numerically identical to \code{v} when no rotation is required.
+}
+
+\strong{2. Rotation parameters (\code{return = "axis_plus_angle"})}
+A list containing:
+\describe{
+\item{axis}{A length-3 \emph{unit} vector describing the rotation axis
+(right-hand rule).}
+\item{angle}{The rotation angle in radians required to align \code{v} with \code{target}.}
+}
+These values can be applied to any other 3D vector using
+\code{rotate_vector_around_axis()}, making it easy to transform multiple
+points consistently.
+
+In either mode, the function handles aligned, anti-aligned, and
+numerically degenerate cases robustly (e.g., 180° flips, tiny cross products).
 }
 \description{
 Rotates a 3D vector \code{v} so that its \emph{direction} aligns with the
