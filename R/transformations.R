@@ -508,13 +508,12 @@ compute_plane_normal_from_vectors <- function(a, b) {
 #'   (presence of \code{x}, \code{y}, \code{z} columns and at least one row).
 #'
 #' @return
-#' For \strong{more than three} points, a list with components:
+#' Returns a list with components:
 #' \describe{
 #'   \item{normal}{Numeric length-3 unit normal vector (named \code{x}, \code{y}, \code{z}).}
 #'   \item{offset}{Numeric scalar \code{d} in the plane equation \code{normal · x + d = 0}.}
+#'   \item{centroid}{Numeric length-3 centroid of all points}
 #' }
-#' For \strong{exactly three} points, a numeric length-3 unit normal vector is
-#' returned.
 #'
 #' @details
 #' For \code{n > 3} points, the coordinates are first translated so that their
@@ -551,6 +550,7 @@ compute_plane_from_points <- function(points, careful = TRUE) {
 
   xyz <- points[, c("x", "y", "z"), drop = FALSE]
   n_points <- nrow(points)
+  center <- colMeans(xyz)
 
   if (n_points < 3) {
     stop("Cannot fit a plane to only [", n_points, "] points")
@@ -569,7 +569,8 @@ compute_plane_from_points <- function(points, careful = TRUE) {
     plane_position <- b
     plane_normal_offset <- convert_plane_point_normal_to_normal_offset(
       normal = plane,
-      point = plane_position
+      point = plane_position,
+      centroid = center
     )
     return(plane_normal_offset)
   }
@@ -577,7 +578,6 @@ compute_plane_from_points <- function(points, careful = TRUE) {
   # If you have more than 3 points, use SVD to get the best fitting plane
 
   # Move geometric center to origin
-  center <- colMeans(xyz)
   xyz[, "x"] <- xyz[,"x"] - center["x"]
   xyz[, "y"] <- xyz[,"y"] - center["y"]
   xyz[, "z"] <- xyz[,"z"] - center["z"]
@@ -593,7 +593,7 @@ compute_plane_from_points <- function(points, careful = TRUE) {
   # plane constant d such that normal·x + d = 0
   d <- -sum(normal * center)
 
-  return(list(normal = normal, offset = d))
+  return(list(normal = normal, offset = d, centroid = center))
 }
 
 #' Convert a plane from (point, normal) to (unit normal, offset)

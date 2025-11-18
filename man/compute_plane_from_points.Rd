@@ -14,13 +14,12 @@ and \code{z} giving point coordinates.}
 (presence of \code{x}, \code{y}, \code{z} columns and at least one row).}
 }
 \value{
-For \strong{more than three} points, a list with components:
+Returns a list with components:
 \describe{
 \item{normal}{Numeric length-3 unit normal vector (named \code{x}, \code{y}, \code{z}).}
 \item{offset}{Numeric scalar \code{d} in the plane equation \code{normal · x + d = 0}.}
+\item{centroid}{Numeric length-3 centroid of all points}
 }
-For \strong{exactly three} points, a numeric length-3 unit normal vector is
-returned.
 }
 \description{
 Fits a geometric plane to a set of 3D points given in columns \code{x}, \code{y}, and \code{z}.
