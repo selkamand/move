@@ -545,7 +545,7 @@ compute_plane_normal_from_vectors <- function(a, b) {
 #' @export
 compute_plane_from_points <- function(points, careful = TRUE) {
   if (careful) {
-    if(!all(c("x", "y", "z") %in% names(points))) stop("points must be a data.frame/matrix with columns 'x', 'y' and 'z'")
+    if(!all(c("x", "y", "z") %in% colnames(points))) stop("points must be a data.frame/matrix with columns 'x', 'y' and 'z'")
     if(nrow(points) <= 0) stop("Cannot fit a plane to only [", n_points ,"]")
   }
 
@@ -578,9 +578,9 @@ compute_plane_from_points <- function(points, careful = TRUE) {
 
   # Move geometric center to origin
   center <- colMeans(xyz)
-  xyz[["x"]] <- xyz[["x"]] - center["x"]
-  xyz[["y"]] <- xyz[["y"]] - center["y"]
-  xyz[["z"]] <- xyz[["z"]] - center["z"]
+  xyz[, "x"] <- xyz[,"x"] - center["x"]
+  xyz[, "y"] <- xyz[,"y"] - center["y"]
+  xyz[, "z"] <- xyz[,"z"] - center["z"]
 
   # Do singular value decomposition
   sv <- svd(xyz)
