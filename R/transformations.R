@@ -1011,7 +1011,7 @@ rotate_table_around_axis <- function(table,
   if (!all(c("x", "y", "z") %in% colnames(table))) {
     stop("`table` must contain columns 'x', 'y', and 'z'.")
   }
-  coords <- as.matrix(table[c("x", "y", "z")])
+  coords <- as.matrix(table[,c("x", "y", "z"), drop=FALSE])
   rotate_one <- function(v) {
     rotate_vector_around_axis_through_point(v,
       rotation_axis = rotation_axis,
@@ -1021,11 +1021,23 @@ rotate_table_around_axis <- function(table,
       zap = zap
     )
   }
-  res <- apply(coords, 1, rotate_one)
-  if (is.vector(res)) res <- matrix(res, nrow = 3)
-  res <- t(res)
-  table$x <- res[, 1]
-  table$y <- res[, 2]
-  table$z <- res[, 3]
+  res <- apply(coords, 1, rotate_one, simplify = FALSE)
+  res_mx <- as.matrix(do.call("rbind", res))
+  table[,"x"] <- res_mx[, 1, drop=TRUE]
+  table[,"y"] <- res_mx[, 2, drop=TRUE]
+  table[,"z"] <- res_mx[, 3, drop=TRUE]
   table
 }
+
+
+# translate_table_in_direction <- function(table, direction, magnitude, careful = TRUE){
+#   if(careful){
+#     if (!all(c("x", "y", "z") %in% colnames(table))) {
+#       stop("`table` must contain columns 'x', 'y', and 'z'.")
+#     }
+#   }
+#
+#   coords <- as.matrix(table[c("x", "y", "z")])
+#
+#   apply(X = coords, 1, )
+# }
