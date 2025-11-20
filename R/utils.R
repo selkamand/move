@@ -184,4 +184,3 @@ wrap_to_360 <- function(degrees){
 wrap_to_2pi <- function(radians){
   radians %% (pi*2)
 }
-

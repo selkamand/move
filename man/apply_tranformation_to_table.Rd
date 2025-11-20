@@ -4,7 +4,7 @@
 \alias{apply_tranformation_to_table}
 \title{Apply a 3D transformation function to coordinate tables}
 \usage{
-apply_tranformation_to_table(table, f)
+apply_tranformation_to_table(table, f, ...)
 }
 \arguments{
 \item{table}{A data frame or matrix containing at least the columns
@@ -13,6 +13,8 @@ apply_tranformation_to_table(table, f)
 \item{f}{A function that takes a numeric vector or named list of length 3
 (\code{x}, \code{y}, \code{z}) and returns a structure (e.g., named numeric or list)
 with elements \code{x}, \code{y}, and \code{z} in that order.}
+
+\item{...}{additional arguments to function f}
 }
 \value{
 A data frame with the same columns as \code{table}, but with the
@@ -21,7 +23,7 @@ A data frame with the same columns as \code{table}, but with the
 \description{
 Applies a user-supplied transformation function to each row of a table
 containing 3D coordinates (\code{x}, \code{y}, \code{z}), returning an updated table
-with transformed coordinates.
+with transformed coordinates. Transformations preserve rownames.
 }
 \examples{
 # Example: rotate points around Z-axis

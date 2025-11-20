@@ -10,7 +10,8 @@ rotate_table_around_axis(
   angle,
   point_on_axis = c(0, 0, 0),
   tol = 1e-08,
-  zap = TRUE
+  zap = TRUE,
+  careful = TRUE
 )
 }
 \arguments{
@@ -27,6 +28,8 @@ rotate_table_around_axis(
 \item{tol}{Numeric tolerance for degeneracy checks.}
 
 \item{zap}{Logical; if \code{TRUE}, zaps small numerical noise.}
+
+\item{careful}{Should we assert the input is sensible? (slow but safer)}
 }
 \value{
 The input \code{table} with rotated \code{x}, \code{y}, \code{z} columns.

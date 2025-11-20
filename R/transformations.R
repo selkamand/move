@@ -936,14 +936,14 @@ measure_distance_between_two_points <- function(a, b) {
 #'
 #' Applies a user-supplied transformation function to each row of a table
 #' containing 3D coordinates (`x`, `y`, `z`), returning an updated table
-#' with transformed coordinates.
+#' with transformed coordinates. Transformations preserve rownames.
 #'
 #' @param table A data frame or matrix containing at least the columns
 #'   `x`, `y`, and `z`.
 #' @param f A function that takes a numeric vector or named list of length 3
 #'   (`x`, `y`, `z`) and returns a structure (e.g., named numeric or list)
 #'   with elements `x`, `y`, and `z` in that order.
-#'
+#' @param ... additional arguments to function f
 #' @return A data frame with the same columns as `table`, but with the
 #'   `x`, `y`, and `z` coordinates replaced by the transformed values.
 #'
@@ -962,17 +962,19 @@ measure_distance_between_two_points <- function(a, b) {
 #' apply_tranformation_to_table(pts, rotate_z)
 #'
 #' @export
-apply_tranformation_to_table <- function(table, f) {
-  coords <- table[c("x", "y", "z")]
-  res <- apply(X = coords, MARGIN = 1, FUN = f, simplify = FALSE)
+apply_tranformation_to_table <- function(table, f, ...) {
+  coords <- table[, c("x", "y", "z"), drop=FALSE]
+  res <- apply(X = coords, MARGIN = 1, FUN = f, ..., simplify = FALSE)
 
-  table$x <- vapply(res, FUN = \(d){
+  # One day we should benchmark whether vapply vector extraction is
+  # faster than an as.matrix(do.call("rbind", res))
+  table[,1] <- vapply(res, FUN = \(d){
     d[1]
   }, FUN.VALUE = numeric(1))
-  table$y <- vapply(res, FUN = \(d){
+  table[,2] <- vapply(res, FUN = \(d){
     d[2]
   }, FUN.VALUE = numeric(1))
-  table$z <- vapply(res, FUN = \(d){
+  table[,3] <- vapply(res, FUN = \(d){
     d[3]
   }, FUN.VALUE = numeric(1))
   return(table)
@@ -992,6 +994,7 @@ apply_tranformation_to_table <- function(table, f) {
 #'   (default `c(0,0,0)`).
 #' @param tol Numeric tolerance for degeneracy checks.
 #' @param zap Logical; if `TRUE`, zaps small numerical noise.
+#' @param careful Should we assert the input is sensible? (slow but safer)
 #'
 #' @return The input `table` with rotated `x`, `y`, `z` columns.
 #'
@@ -1007,37 +1010,63 @@ rotate_table_around_axis <- function(table,
                                      angle,
                                      point_on_axis = c(0, 0, 0),
                                      tol = 1e-8,
-                                     zap = TRUE) {
+                                     zap = TRUE,
+                                     careful = TRUE
+                                     ) {
   if (!all(c("x", "y", "z") %in% colnames(table))) {
     stop("`table` must contain columns 'x', 'y', and 'z'.")
   }
-  coords <- as.matrix(table[,c("x", "y", "z"), drop=FALSE])
-  rotate_one <- function(v) {
-    rotate_vector_around_axis_through_point(v,
-      rotation_axis = rotation_axis,
-      point_on_axis = point_on_axis,
-      angle = angle,
-      tol = tol,
-      zap = zap
-    )
+
+  # Checks to perform (disable with careful=FALSE for speed)
+  if(careful == TRUE){
+    if (!all(c("x", "y", "z") %in% colnames(table))) {
+      stop("`table` must contain columns 'x', 'y', and 'z'.")
+    }
   }
-  res <- apply(coords, 1, rotate_one, simplify = FALSE)
-  res_mx <- as.matrix(do.call("rbind", res))
-  table[,"x"] <- res_mx[, 1, drop=TRUE]
-  table[,"y"] <- res_mx[, 2, drop=TRUE]
-  table[,"z"] <- res_mx[, 3, drop=TRUE]
-  table
+
+  apply_tranformation_to_table(
+    table = table,
+    f = rotate_vector_around_axis_through_point,
+    rotation_axis = rotation_axis,
+    point_on_axis = point_on_axis,
+    angle = angle,
+    tol = tol,
+    zap = zap
+  )
 }
 
+#' Translate all points in a table in direction
+#'
+#' Rotates each row of a coordinate table (with columns `x`, `y`, `z`) about a
+#' specified axis by a given angle. The axis may pass through an arbitrary point
+#' (default is the origin).
+#'
+#' @inheritParams translate_position_in_direction
+#' @inheritParams apply_tranformation_to_table
+#' @param careful Should we assert the input is sensible? (slow but safer)
+#'
+#' @return The input `table` translated along `direction` by `magnitude`
+#'
+#' @examples
+#' pts <- data.frame(x = c(2, 3), y = c(0, 0), z = c(0, 0))
+#' direction <- c(0, 0, 1)
+#' magnitude <- 10
+#' translate_table_in_direction(pts, direction, magnitude)
+#'
+#' @export
+translate_table_in_direction <- function(table, direction, magnitude, careful=TRUE) {
 
-# translate_table_in_direction <- function(table, direction, magnitude, careful = TRUE){
-#   if(careful){
-#     if (!all(c("x", "y", "z") %in% colnames(table))) {
-#       stop("`table` must contain columns 'x', 'y', and 'z'.")
-#     }
-#   }
-#
-#   coords <- as.matrix(table[c("x", "y", "z")])
-#
-#   apply(X = coords, 1, )
-# }
+  # Checks to perform (disable with careful=FALSE for speed)
+  if(careful){
+    if (!all(c("x", "y", "z") %in% colnames(table))) {
+      stop("`table` must contain columns 'x', 'y', and 'z'.")
+    }
+  }
+
+  apply_tranformation_to_table(
+    table = table,
+    f = translate_position_in_direction,
+    direction = direction,
+    magnitude = magnitude
+  )
+}
